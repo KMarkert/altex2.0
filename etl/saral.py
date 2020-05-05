@@ -23,7 +23,7 @@ import sqlalchemy
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-def unpack(fileList):
+def unpack(fileList,outDir):
     outlist = []
     for f in fileList:
         extracted = f.with_suffix('.CNES.nc')
@@ -74,7 +74,7 @@ def extract(sensor, outDir, startTime=None, endTime=None, overwrite=False):
 
     templist = next(tuple(x.result()) for x in done)
 
-    outlist = unpack(templist)
+    outlist = unpack(templist,outDir)
 
     return outlist
 
@@ -163,13 +163,13 @@ def parseFile(altimetryPath,spatialFilter=None, geoidDataset=None):
     keepPts['geom'] = keepPts['geometry'].apply(lambda x: WKTElement(x.wkt, srid=4326))
     outGdf = keepPts.drop('geometry', axis=1)
 
-    geoidVals = []
-    for row in outGdf.itertuples():
-        x,y = row.lon,row.lat
-        g = np.int32(geoid.interp(lon=x,lat=y).geoid.values * 10000)
-        geoidVals.append(g)
+    x,y = outGdf['lon'].where(outGdf['lon'] > 0, outGdf['lon'] + 360).values, outGdf.lat.values
+    xLookup = geoid.lon.interp(lon=x,method='nearest').compute().values
+    yLookup = geoid.lat.interp(lat=y,method='nearest').compute().values
+    geoidVals = (geoid.geoid.sel(lon=xLookup,lat=yLookup).compute().values * scaleFactor).astype(np.int32)
+    # print(x.size, x.min(),x.max())
 
-    outGdf['geoid'] = geoidVals
+    outGdf['geoid'] =  geoidVals.diagonal()
 
     return outGdf
 
@@ -187,14 +187,14 @@ def load(dfs, dbname, table, username='postgres', host='127.0.0.1',port=5432):
         "time": sqlalchemy.TIMESTAMP(),
         "lon": sqlalchemy.Numeric(9,6),
         "lat": sqlalchemy.Numeric(8,6),
-        "alt": sqlalchemy.Numeric(8,2),
-        "ice_range": sqlalchemy.Numeric(8,2),
-        "model_dry_tropo_corr": sqlalchemy.SmallInteger(),
-        "model_wet_tropo_corr": sqlalchemy.SmallInteger(),
+        "alt": sqlalchemy.Numeric(12,5),
+        "ice_range": sqlalchemy.Numeric(12,5),
+        "model_dry_tropo_corr": sqlalchemy.Integer(),
+        "model_wet_tropo_corr": sqlalchemy.Integer(),
         "iono_corr_gim": sqlalchemy.SmallInteger(),
         "solid_earth_tide": sqlalchemy.SmallInteger(),
         "pole_tide": sqlalchemy.SmallInteger(),
-        "geoid": sqlalchemy.SmallInteger(),
+        "geoid": sqlalchemy.Integer(),
         "geom": Geometry('POINT', srid=4326)
     }
 
