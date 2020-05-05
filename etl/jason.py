@@ -1,3 +1,4 @@
+import os
 import fire
 import datetime
 import numpy as np
@@ -200,12 +201,18 @@ def load(dfs, dbname, table, username='postgres', host='127.0.0.1',port=5432):
 
 
 def etl(sensor, workingDir, dbname, startTime=None, endTime=None, overwrite=False, maxWorkers=5,
-        username='postgres',host='127.0.0.1', port=5432, geoidDataset=None,spatialFilter=None):
+        username='postgres',host='127.0.0.1', port=5432, geoidDataset=None,spatialFilter=None
+        cleanup=False):
     raw = extract(sensor, workingDir, startTime=startTime,
                   endTime=endTime, overwrite=False)
     # raw = glob.glob(workingDir+'JA3*.nc')
     gdfs = transform(raw, maxWorkers=maxWorkers,geoidDataset=geoidDataset)
     load(gdfs, dbname=dbname,table=sensor,username=username,host=host,port=port)
+
+    if cleanup:
+        trash = glob.glob(workingDir+'*.*')
+        for file in trash:
+            os.remove(file)
 
     return
 
