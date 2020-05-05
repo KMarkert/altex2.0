@@ -1,0 +1,59 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+#map {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+}
+
+#control-container {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  width: 415px;
+  height:625px;
+  padding: 10px;
+  background-color: #fff;
+  box-shadow: 5px 10px 20px #404040;
+}
+
+#spatial-select {
+  margin: 15px;
+  width: 375px;
+}
+
+.header {
+  text-shadow: 1px 1px 6px #d8d8d8;
+}
+
+.form-compact {
+  width: 375px;
+  margin: 15px;
+}
+
+.btn-custom {
+  width: 180px;
+}
+
+.marker {
+  background-image: url('https://upload.wikimedia.org/wikipedia/commons/b/b0/Simpleicons_Places_map-marker-1.svg');
+  /* filter: invert() sepia() saturate(10000%) hue-rotate(30deg); */
+  background-size: cover;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.mapboxgl-popup {
+  max-width: 200px;
+}
+
+.mapboxgl-popup-content {
+  text-align: center;
+  font-family: 'Open Sans', sans-serif;
+}
