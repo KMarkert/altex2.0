@@ -206,9 +206,9 @@ def load(dfs, dbname, table, username='postgres', host='127.0.0.1',port=5432):
 
 
 def etl(sensor, workingDir, dbname, startTime=None, endTime=None, overwrite=False, maxWorkers=5,
-        username='postgres',host='127.0.0.1', port=5432, geoidDataset=None, spatialFilter=None
+        username='postgres',host='127.0.0.1', port=5432, geoidDataset=None, spatialFilter=None,
         cleanup=False):
-        
+
     raw = extract(sensor, workingDir, startTime=startTime,
                   endTime=endTime, overwrite=False)
     gdfs = transform(raw, maxWorkers=maxWorkers,geoidDataset=geoidDataset)
