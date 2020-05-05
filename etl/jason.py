@@ -5,8 +5,6 @@ import pandas as pd
 import xarray as xr
 import geopandas as gpd
 from scipy import interpolate
-import json
-import geojson
 import glob
 # import requests
 import subprocess
@@ -80,7 +78,7 @@ def interpDim(oldArr, newDim, type='nearest'):
 def parseFile(altimetryPath, spatialFilter=None, geoidDataset=None):
     path = Path(altimetryPath).resolve()
     ds = xr.open_dataset(path)
-    geoid = xr.open_dataset(geoidDataset)
+    geoid = xr.open_dataset(geoidDataset).load()
     # landArea = gpd.read_file(spatialFilter)
 
     vars20hz = [
@@ -120,6 +118,8 @@ def parseFile(altimetryPath, spatialFilter=None, geoidDataset=None):
     df.dropna(inplace=True)
     # print(df.columns)
 
+    scaleFactor = 10000
+
     # do some altering of data including data typing
     df['time'] = df['time'].values.astype('datetime64[us]')
     df['lon'] = df['lon'].where(df['lon'] < 180, df['lon'] - 360)
@@ -128,11 +128,11 @@ def parseFile(altimetryPath, spatialFilter=None, geoidDataset=None):
     df['alt_state_flag_band_status'] = df['alt_state_flag_band_status'].astype(np.uint8)
 
     # scale values to prevent unnecessarily large dtypes
-    df["model_dry_tropo_corr"] = (df["model_dry_tropo_corr"] * 10000).astype(np.int32)
-    df["model_wet_tropo_corr"] = (df["model_wet_tropo_corr"] * 10000).astype(np.int32)
-    df["iono_corr_gim"] = (df["iono_corr_gim"] * 10000).astype(np.int32)
-    df["solid_earth_tide"] = (df["solid_earth_tide"] * 10000).astype(np.int32)
-    df["pole_tide"] = (df["pole_tide"] * 10000).astype(np.int32)
+    df["model_dry_tropo_corr"] = (df["model_dry_tropo_corr"] * scaleFactor).astype(np.int32)
+    df["model_wet_tropo_corr"] = (df["model_wet_tropo_corr"] * scaleFactor).astype(np.int32)
+    df["iono_corr_gim"] = (df["iono_corr_gim"] * scaleFactor).astype(np.int32)
+    df["solid_earth_tide"] = (df["solid_earth_tide"] * scaleFactor).astype(np.int32)
+    df["pole_tide"] = (df["pole_tide"] * scaleFactor).astype(np.int32)
 
 
     mask = (df['alt_state_flag_band_status'] == 0) & (df['ice_qual_flag'] == 0)
@@ -154,20 +154,23 @@ def parseFile(altimetryPath, spatialFilter=None, geoidDataset=None):
     keepPts['geom'] = keepPts['geometry'].apply(lambda x: WKTElement(x.wkt, srid=4326))
     outGdf = keepPts.drop('geometry', axis=1)
 
-    geoidVals = []
-    for row in outGdf.itertuples():
-        x,y = row.lon,row.lat
-        g = np.int32(geoid.interp(lon=x,lat=y).geoid.values * 10000)
-        geoidVals.append(g)
+    x,y = outGdf['lon'].where(outGdf['lon'] > 0, outGdf['lon'] + 360).values, outGdf.lat.values
+    xLookup = geoid.lon.interp(lon=x,method='nearest').compute().values
+    yLookup = geoid.lat.interp(lat=y,method='nearest').compute().values
+    geoidVals = (geoid.geoid.sel(lon=xLookup,lat=yLookup).compute().values * scaleFactor).astype(np.int32)
+    # print(x.size, x.min(),x.max())
 
-    outGdf['geoid'] = geoidVals
-
+    outGdf['geoid'] =  geoidVals.diagonal()
 
     return outGdf
 
 def transform(flist, maxWorkers=5,geoidDataset=None):
+
     with ThreadPoolExecutor(max_workers=maxWorkers) as executor:
         gdfs = list(executor.map(lambda x: parseFile(x,geoidDataset=geoidDataset), flist))
+    # gdf = []
+    # for f in flist:
+    #     gdfs = parseFile(f,geoidDataset=geoidDataset)
 
     return gdfs
 
@@ -180,12 +183,12 @@ def load(dfs, dbname, table, username='postgres', host='127.0.0.1',port=5432):
         "lat": sqlalchemy.Numeric(8,6),
         "alt": sqlalchemy.Numeric(12,5),
         "ice_range": sqlalchemy.Numeric(12,5),
-        "model_dry_tropo_corr": sqlalchemy.SmallInteger(),
-        "model_wet_tropo_corr": sqlalchemy.SmallInteger(),
+        "model_dry_tropo_corr": sqlalchemy.Integer(),
+        "model_wet_tropo_corr": sqlalchemy.Integer(),
         "iono_corr_gim": sqlalchemy.SmallInteger(),
         "solid_earth_tide": sqlalchemy.SmallInteger(),
         "pole_tide": sqlalchemy.SmallInteger(),
-        "geoid": sqlalchemy.SmallInteger(),
+        "geoid": sqlalchemy.Integer(),
         "geom": Geometry('POINT', srid=4326)
     }
 
@@ -195,10 +198,12 @@ def load(dfs, dbname, table, username='postgres', host='127.0.0.1',port=5432):
     return
 
 
+
 def etl(sensor, workingDir, dbname, startTime=None, endTime=None, overwrite=False, maxWorkers=5,
         username='postgres',host='127.0.0.1', port=5432, geoidDataset=None,spatialFilter=None):
     raw = extract(sensor, workingDir, startTime=startTime,
                   endTime=endTime, overwrite=False)
+    # raw = glob.glob(workingDir+'JA3*.nc')
     gdfs = transform(raw, maxWorkers=maxWorkers,geoidDataset=geoidDataset)
     load(gdfs, dbname=dbname,table=sensor,username=username,host=host,port=port)
 
