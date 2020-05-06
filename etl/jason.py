@@ -96,7 +96,7 @@ def parseFile(altimetryPath, spatialFilter=None):
         'model_wet_tropo_corr',
         'iono_corr_gim_ku',
         'solid_earth_tide',
-        'pole_tide'
+        'pole_tide',
         'geoid'
     ]
 
