@@ -24,7 +24,7 @@ import sqlalchemy
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-def unpack(fileList,outDir):
+def unpack(fileList,outDir, overwrite=False):
     outlist = []
     for f in fileList:
         extracted = f.with_suffix('.CNES.nc')
@@ -75,7 +75,7 @@ def extract(sensor, outDir, startTime=None, endTime=None, overwrite=False):
 
     templist = next(tuple(x.result()) for x in done)
 
-    outlist = unpack(templist,outDir)
+    outlist = unpack(templist,outDir,overwrite=overwrite)
 
     return outlist
 
@@ -91,10 +91,9 @@ def interpDim(oldArr, newDim, type='nearest'):
     return fInterp(newx)
 
 
-def parseFile(altimetryPath,spatialFilter=None, geoidDataset=None):
+def parseFile(altimetryPath,spatialFilter=None):
     path = Path(altimetryPath).resolve()
     ds = xr.open_dataset(path)
-    geoid = xr.open_dataset(geoidDataset)
 
     vars20hz = [
         'time_40hz',
@@ -106,12 +105,13 @@ def parseFile(altimetryPath,spatialFilter=None, geoidDataset=None):
     ]
 
     vars1hz = [
-        'qual_rad_1hz_tb_ka',
+        'qual_alt_1hz_range',
         'model_dry_tropo_corr',
         'model_wet_tropo_corr',
         'iono_corr_gim',
         'solid_earth_tide',
-        'pole_tide'
+        'pole_tide',
+        'geoid'
     ]
 
     interpMethods = ['nearest'] + ['linear' for i in range(len(vars1hz) - 1)]
@@ -133,22 +133,25 @@ def parseFile(altimetryPath,spatialFilter=None, geoidDataset=None):
     df.dropna(inplace=True)
     # print(df.columns)
 
+    scaleFactor = 10000
+
     # do some altering of data including data typing
     df['time'] = df['time'].values.astype('datetime64[us]')
     df['lon'] = df['lon'].where(df['lon'] < 180, df['lon'] - 360)
     df['ice_qual_flag'] = df['ice_qual_flag'].astype(np.uint8)
-    df['qual_rad_1hz_tb_ka'] = df['qual_rad_1hz_tb_ka'].astype(np.uint8)
+    df['qual_alt_1hz_range'] = df['qual_alt_1hz_range'].astype(np.uint8)
 
     mask = (df['ice_qual_flag'] == 0)
     df = df.loc[mask]
-    df.drop(['qual_rad_1hz_tb_ka','ice_qual_flag'],axis=1,inplace=True)
+    df.drop(['qual_alt_1hz_range','ice_qual_flag'],axis=1,inplace=True)
 
     # scale values to prevent unnecessarily large dtypes
-    df["model_dry_tropo_corr"] = df["model_dry_tropo_corr"] * 10000
-    df["model_wet_tropo_corr"] = df["model_wet_tropo_corr"] * 10000
-    df["iono_corr_gim"] = df["iono_corr_gim"] * 10000
-    df["solid_earth_tide"] = df["solid_earth_tide"] * 10000
-    df["pole_tide"] = df["pole_tide"] * 10000
+    df["model_dry_tropo_corr"] = df["model_dry_tropo_corr"] * scaleFactor
+    df["model_wet_tropo_corr"] = df["model_wet_tropo_corr"] * scaleFactor
+    df["iono_corr_gim"] = df["iono_corr_gim"] * scaleFactor
+    df["solid_earth_tide"] = df["solid_earth_tide"] * scaleFactor
+    df["pole_tide"] = df["pole_tide"] * scaleFactor
+    df["geoid"] = (df["geoid"] * scaleFactor).astype(np.int32)
 
     gdf = gpd.GeoDataFrame(
         df, geometry=gpd.points_from_xy(df.lon, df.lat))
@@ -164,20 +167,12 @@ def parseFile(altimetryPath,spatialFilter=None, geoidDataset=None):
     keepPts['geom'] = keepPts['geometry'].apply(lambda x: WKTElement(x.wkt, srid=4326))
     outGdf = keepPts.drop('geometry', axis=1)
 
-    x,y = outGdf['lon'].where(outGdf['lon'] > 0, outGdf['lon'] + 360).values, outGdf.lat.values
-    xLookup = geoid.lon.interp(lon=x,method='nearest').compute().values
-    yLookup = geoid.lat.interp(lat=y,method='nearest').compute().values
-    geoidVals = (geoid.geoid.sel(lon=xLookup,lat=yLookup).compute().values * scaleFactor).astype(np.int32)
-    # print(x.size, x.min(),x.max())
-
-    outGdf['geoid'] =  geoidVals.diagonal()
-
     return outGdf
 
 
 def transform(flist, maxWorkers=5,geoidDataset=None):
     with ThreadPoolExecutor(max_workers=maxWorkers) as executor:
-        gdfs = list(executor.map(lambda x: parseFile(x,geoidDataset=geoidDataset), flist))
+        gdfs = list(executor.map(lambda x: parseFile(x), flist))
 
     return gdfs
 
@@ -191,7 +186,7 @@ def load(dfs, dbname, table, username='postgres', host='127.0.0.1',port=5432):
         "alt": sqlalchemy.Numeric(12,5),
         "ice_range": sqlalchemy.Numeric(12,5),
         "model_dry_tropo_corr": sqlalchemy.Integer(),
-        "model_wet_tropo_corr": sqlalchemy.Integer(),
+        "model_wet_tropo_corr": sqlalchemy.SmallInteger(),
         "iono_corr_gim": sqlalchemy.SmallInteger(),
         "solid_earth_tide": sqlalchemy.SmallInteger(),
         "pole_tide": sqlalchemy.SmallInteger(),
@@ -206,12 +201,12 @@ def load(dfs, dbname, table, username='postgres', host='127.0.0.1',port=5432):
 
 
 def etl(sensor, workingDir, dbname, startTime=None, endTime=None, overwrite=False, maxWorkers=5,
-        username='postgres',host='127.0.0.1', port=5432, geoidDataset=None, spatialFilter=None,
+        username='postgres',host='127.0.0.1', port=5432, spatialFilter=None,
         cleanup=False):
 
     raw = extract(sensor, workingDir, startTime=startTime,
-                  endTime=endTime, overwrite=False)
-    gdfs = transform(raw, maxWorkers=maxWorkers,geoidDataset=geoidDataset)
+                  endTime=endTime, overwrite=overwrite)
+    gdfs = transform(raw, maxWorkers=maxWorkers)
     load(gdfs, dbname=dbname,table=sensor,username=username,host=host,port=port)
 
     if cleanup:

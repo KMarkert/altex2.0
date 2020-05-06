@@ -76,10 +76,9 @@ def interpDim(oldArr, newDim, type='nearest'):
     return fInterp(newx)
 
 
-def parseFile(altimetryPath, spatialFilter=None, geoidDataset=None):
+def parseFile(altimetryPath, spatialFilter=None):
     path = Path(altimetryPath).resolve()
     ds = xr.open_dataset(path)
-    geoid = xr.open_dataset(geoidDataset).load()
     # landArea = gpd.read_file(spatialFilter)
 
     vars20hz = [
@@ -98,6 +97,7 @@ def parseFile(altimetryPath, spatialFilter=None, geoidDataset=None):
         'iono_corr_gim_ku',
         'solid_earth_tide',
         'pole_tide'
+        'geoid'
     ]
 
     interpMethods = ['nearest'] + ['linear' for i in range(len(vars1hz) - 1)]
@@ -134,6 +134,7 @@ def parseFile(altimetryPath, spatialFilter=None, geoidDataset=None):
     df["iono_corr_gim"] = (df["iono_corr_gim"] * scaleFactor).astype(np.int32)
     df["solid_earth_tide"] = (df["solid_earth_tide"] * scaleFactor).astype(np.int32)
     df["pole_tide"] = (df["pole_tide"] * scaleFactor).astype(np.int32)
+    df["geoid"] = (df["geoid"] * scaleFactor).astype(np.int32)
 
 
     mask = (df['alt_state_flag_band_status'] == 0) & (df['ice_qual_flag'] == 0)
@@ -155,20 +156,12 @@ def parseFile(altimetryPath, spatialFilter=None, geoidDataset=None):
     keepPts['geom'] = keepPts['geometry'].apply(lambda x: WKTElement(x.wkt, srid=4326))
     outGdf = keepPts.drop('geometry', axis=1)
 
-    x,y = outGdf['lon'].where(outGdf['lon'] > 0, outGdf['lon'] + 360).values, outGdf.lat.values
-    xLookup = geoid.lon.interp(lon=x,method='nearest').compute().values
-    yLookup = geoid.lat.interp(lat=y,method='nearest').compute().values
-    geoidVals = (geoid.geoid.sel(lon=xLookup,lat=yLookup).compute().values * scaleFactor).astype(np.int32)
-    # print(x.size, x.min(),x.max())
-
-    outGdf['geoid'] =  geoidVals.diagonal()
-
     return outGdf
 
 def transform(flist, maxWorkers=5,geoidDataset=None):
 
     with ThreadPoolExecutor(max_workers=maxWorkers) as executor:
-        gdfs = list(executor.map(lambda x: parseFile(x,geoidDataset=geoidDataset), flist))
+        gdfs = list(executor.map(lambda x: parseFile(x), flist))
     # gdf = []
     # for f in flist:
     #     gdfs = parseFile(f,geoidDataset=geoidDataset)
@@ -201,12 +194,12 @@ def load(dfs, dbname, table, username='postgres', host='127.0.0.1',port=5432):
 
 
 def etl(sensor, workingDir, dbname, startTime=None, endTime=None, overwrite=False, maxWorkers=5,
-        username='postgres',host='127.0.0.1', port=5432, geoidDataset=None,spatialFilter=None,
+        username='postgres',host='127.0.0.1', port=5432, spatialFilter=None,
         cleanup=False):
     raw = extract(sensor, workingDir, startTime=startTime,
-                  endTime=endTime, overwrite=False)
+                  endTime=endTime, overwrite=overwrite)
     # raw = glob.glob(workingDir+'JA3*.nc')
-    gdfs = transform(raw, maxWorkers=maxWorkers,geoidDataset=geoidDataset)
+    gdfs = transform(raw, maxWorkers=maxWorkers)
     load(gdfs, dbname=dbname,table=sensor,username=username,host=host,port=port)
 
     if cleanup:
