@@ -137,22 +137,25 @@ def parseFile(altimetryPath, spatialFilter=None):
     df["geoid"] = (df["geoid"] * scaleFactor).astype(np.int32)
 
 
-    mask = (df['alt_state_flag_band_status'] == 0) & (df['ice_qual_flag'] == 0)
-    df = df.loc[mask]
+    qamask = (df['alt_state_flag_band_status'] == 0) & (df['ice_qual_flag'] == 0)
+    df = df.loc[qamask]
+    latmask = ((df['lat'] > -60) & (df['lat'] < 85))
+    df = df.loc[latmask]
+
     df.drop(['alt_state_flag_band_status','ice_qual_flag'],axis=1,inplace=True)
 
     gdf = gpd.GeoDataFrame(
         df, geometry=gpd.points_from_xy(df.lon, df.lat))
     gdf.crs = {'init': 'epsg:4326'}
 
+
     land = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
     land['code'] = 1
-    clipRegion = gpd.GeoDataFrame(land.dissolve(by='code').buffer(0.05))
+    clipRegion = gpd.GeoDataFrame(land.dissolve(by='code').buffer(0.075))
     clipRegion.columns = ['geometry']
     clipRegion.crs = {'init': 'epsg:4326'}
 
-    keepPts = gpd.overlay(gdf,clipRegion,how='intersection')
-
+    keepPts = gpd.clip(gdf,clipRegion)
     keepPts['geom'] = keepPts['geometry'].apply(lambda x: WKTElement(x.wkt, srid=4326))
     outGdf = keepPts.drop('geometry', axis=1)
 
