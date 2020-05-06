@@ -160,11 +160,14 @@ def parseFile(altimetryPath,spatialFilter=None):
         df, geometry=gpd.points_from_xy(df.lon, df.lat))
     gdf.crs = {'init': 'epsg:4326'}
 
-    land = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-    land['code'] = 1
-    clipRegion = gpd.GeoDataFrame(land.dissolve(by='code').buffer(0.075))
-    clipRegion.columns = ['geometry']
-    clipRegion.crs = {'init': 'epsg:4326'}
+    if spatialFilter is not None:
+        clipRegion= gpd.read_file(spatialFilter)
+    else:
+        land = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
+        land['code'] = 1
+        clipRegion = gpd.GeoDataFrame(land.dissolve(by='code').buffer(0.075))
+        clipRegion.columns = ['geometry']
+        clipRegion.crs = {'init': 'epsg:4326'}
 
     keepPts = gpd.clip(gdf,clipRegion)
     keepPts['geom'] = keepPts['geometry'].apply(lambda x: WKTElement(x.wkt, srid=4326))
@@ -173,9 +176,9 @@ def parseFile(altimetryPath,spatialFilter=None):
     return outGdf
 
 
-def transform(flist, maxWorkers=5,geoidDataset=None):
+def transform(flist, maxWorkers=5,spatialFilter=None):
     with ThreadPoolExecutor(max_workers=maxWorkers) as executor:
-        gdfs = list(executor.map(lambda x: parseFile(x), flist))
+        gdfs = list(executor.map(lambda x: parseFile(x,spatialFilter=spatialFilter), flist))
 
     return gdfs
 
@@ -209,7 +212,7 @@ def etl(sensor, workingDir, dbname, startTime=None, endTime=None, overwrite=Fals
 
     raw = extract(sensor, workingDir, startTime=startTime,
                   endTime=endTime, overwrite=overwrite)
-    gdfs = transform(raw, maxWorkers=maxWorkers)
+    gdfs = transform(raw, maxWorkers=maxWorkers,spatialFilter=spatialFilter)
     load(gdfs, dbname=dbname,table=sensor,username=username,host=host,port=port)
 
     if cleanup:
