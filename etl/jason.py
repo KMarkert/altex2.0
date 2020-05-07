@@ -48,7 +48,7 @@ def extract(sensor, outDir, startTime=None, endTime=None, overwrite=False):
                         outPath = outDir / path.name
                         if outPath.exists() is False or overwrite is True:
                             await client.download(path, destination=outDir)
-                        print(f'{path} -> {outPath}')
+                        # print(f'{path} -> {outPath}')
                         flist.append(outPath)
             return flist
 
