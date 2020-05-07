@@ -3,15 +3,15 @@ import datetime
 import time
 
 script = 'jason.py'
-sensor = 'jason3'
+sensor = 'jason2'
 workingdir = f'../data/altimetry/{sensor}/'
 dbname= 'altexdb'
 username = 'kmarkert'
 landFile = '../data/ancillary/land_area.geojson'
 
 
-start = datetime.datetime('2008-07-04')
-end = datetime.datetime('2008-12-31')
+start = datetime.datetime.strptime('2008-07-04',"%Y-%m-%d")
+end = datetime.datetime.strptime('2008-12-31',"%Y-%m-%d")
 iter = (end-start).days + 1
 
 for t in range(iters):
