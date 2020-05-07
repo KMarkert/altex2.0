@@ -91,7 +91,7 @@ def interpDim(oldArr, newDim, type='nearest'):
     return fInterp(newx)
 
 
-def parseFile(altimetryPath,spatialFilter=None):
+def parseFile(altimetryPath):
     path = Path(altimetryPath).resolve()
     ds = xr.open_dataset(path)
 
@@ -160,6 +160,15 @@ def parseFile(altimetryPath,spatialFilter=None):
         df, geometry=gpd.points_from_xy(df.lon, df.lat))
     gdf.crs = {'init': 'epsg:4326'}
 
+    return gdf
+
+
+def transform(flist, maxWorkers=5,spatialFilter=None):
+    with ThreadPoolExecutor(max_workers=maxWorkers) as executor:
+        gdfs = list(executor.map(lambda x: parseFile(x), flist))
+
+    merged = gpd.GeoDataFrame( pd.concat( gdfs, ignore_index=True) )
+
     if spatialFilter is not None:
         clipRegion= gpd.read_file(spatialFilter)
     else:
@@ -169,21 +178,21 @@ def parseFile(altimetryPath,spatialFilter=None):
         clipRegion.columns = ['geometry']
         clipRegion.crs = {'init': 'epsg:4326'}
 
-    keepPts = gpd.clip(gdf,clipRegion)
+    matches = []
+    spatial_index = merged.sindex
+    for index, row in clipRegion.iterrows():
+        possible_matches_index = list(spatial_index.intersection(row.geometry.bounds))
+        possible_matches = merged.iloc[possible_matches_index]
+        matches.append(possible_matches[possible_matches.intersects(row.geometry)])
+
+    keepPts = gpd.GeoDataFrame( pd.concat( matches, ignore_index=True) )
     keepPts['geom'] = keepPts['geometry'].apply(lambda x: WKTElement(x.wkt, srid=4326))
     outGdf = keepPts.drop('geometry', axis=1)
 
     return outGdf
 
 
-def transform(flist, maxWorkers=5,spatialFilter=None):
-    with ThreadPoolExecutor(max_workers=maxWorkers) as executor:
-        gdfs = list(executor.map(lambda x: parseFile(x,spatialFilter=spatialFilter), flist))
-
-    return gdfs
-
-
-def load(dfs, dbname, table, username='postgres', host='127.0.0.1',port=5432):
+def load(df, dbname, table, username='postgres', host='127.0.0.1',port=5432):
     engine = sqlalchemy.create_engine(f"postgresql://{username}@{host}:{port}/{dbname}", echo=False)
     columnTypes = {
         "time": sqlalchemy.TIMESTAMP(),
@@ -200,8 +209,8 @@ def load(dfs, dbname, table, username='postgres', host='127.0.0.1',port=5432):
         "geom": Geometry('POINT', srid=4326)
     }
 
-    for df in dfs:
-        df.to_sql(table, con=engine,if_exists='append', index=False,dtype=columnTypes)
+    # for df in dfs:
+    df.to_sql(table, con=engine,if_exists='append', index=False,dtype=columnTypes)
 
     return
 
@@ -212,8 +221,8 @@ def etl(sensor, workingDir, dbname, startTime=None, endTime=None, overwrite=Fals
 
     raw = extract(sensor, workingDir, startTime=startTime,
                   endTime=endTime, overwrite=overwrite)
-    gdfs = transform(raw, maxWorkers=maxWorkers,spatialFilter=spatialFilter)
-    load(gdfs, dbname=dbname,table=sensor,username=username,host=host,port=port)
+    gdf = transform(raw, maxWorkers=maxWorkers,spatialFilter=spatialFilter)
+    load(gdf, dbname=dbname,table=sensor,username=username,host=host,port=port)
 
     if cleanup:
         trash = glob.glob(workingDir+'*.*')
