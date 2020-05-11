@@ -149,6 +149,13 @@ def parseFile(altimetryPath):
 
     return gdf
 
+def spatialSelect(gdf,region):
+    spatial_index = gdf.sindex
+    possible_matches_index = list(spatial_index.intersection(region.bounds))
+    possible_matches = gdf.iloc[possible_matches_index]
+    matches = possible_matches[possible_matches.intersects(region)]
+    return matches
+
 def transform(flist, maxWorkers=5,spatialFilter=None):
 
     with ThreadPoolExecutor(max_workers=maxWorkers) as executor:
@@ -165,12 +172,8 @@ def transform(flist, maxWorkers=5,spatialFilter=None):
         clipRegion.columns = ['geometry']
         clipRegion.crs = {'init': 'epsg:4326'}
 
-    matches = []
-    spatial_index = merged.sindex
-    for index, row in clipRegion.iterrows():
-        possible_matches_index = list(spatial_index.intersection(row.geometry.bounds))
-        possible_matches = merged.iloc[possible_matches_index]
-        matches.append(possible_matches[possible_matches.intersects(row.geometry)])
+    with ThreadPoolExecutor(max_workers=maxWorkers) as executor:
+        matches = list(executor.map(lambda x: spatialSelect(merged,x), clipRegion.geometry))
 
     keepPts = gpd.GeoDataFrame( pd.concat( matches, ignore_index=True) )
     keepPts['geom'] = keepPts['geometry'].apply(lambda x: WKTElement(x.wkt, srid=4326))
@@ -208,7 +211,7 @@ def etl(sensor, workingDir, dbname, startTime=None, endTime=None, overwrite=Fals
         cleanup=False):
     raw = extract(sensor, workingDir, startTime=startTime,
                   endTime=endTime, overwrite=overwrite)
-    # raw = glob.glob(workingDir+'JA3*.nc')
+    # raw = glob.glob(workingDir+'JA2*.nc')
     gdf = transform(raw, maxWorkers=maxWorkers,spatialFilter=spatialFilter)
     load(gdf, dbname=dbname,table=sensor,username=username,host=host,port=port)
 
