@@ -5,92 +5,139 @@
 	<meta charset="utf-8" />
 	<title>AltEx2.0</title>
 	<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+	<!-- mapbox map api -->
 	<script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.6.0/mapbox-gl.js"></script>
 	<link href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.6.0/mapbox-gl.css" rel="stylesheet" />
 	<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.0.9/mapbox-gl-draw.js'></script>
 	<link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.0.9/mapbox-gl-draw.css' type='text/css' />
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" rel="stylesheet" type="text/css" />
-
-
+	<!-- bootstrap -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	<link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
+	<!-- datepicker -->
 	<script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js" type="text/javascript"></script>
   <link href="https://unpkg.com/gijgo@1.9.13/css/gijgo.min.css" rel="stylesheet" type="text/css" />
+	<!-- data tables -->
+	<script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js" type="text/javascript"></script>
+	<script src="https://cdn.datatables.net/buttons/1.6.2/js/dataTables.buttons.min.js" type="text/javascript"></script>
+	<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.html5.min.js" type="text/javascript"></script>
+	<script src="https://cdn.datatables.net/fixedheader/3.1.7/js/dataTables.fixedHeader.min.js" type="text/javascript"></script>
+	<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.html5.min.js" type="text/javascript"></script>
+	<link href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
+	<!-- highcharts -->
+	<script src="https://code.highcharts.com/highcharts.js"></script>
+	<script src="https://code.highcharts.com/modules/series-label.js"></script>
+	<script src="https://code.highcharts.com/modules/exporting.js"></script>
+	<script src="https://code.highcharts.com/modules/export-data.js"></script>
+	<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+	<!-- font awesome icons -->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" rel="stylesheet" type="text/css" />
+	<!-- date.js -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/datejs/1.0/date.min.js" type="text/javascript"></script>
 
+	<!-- custom script and styling -->
+	<script src="{{ url_for('static', filename='js/map.js') }}"></script>
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
-
 
 </head>
 
 <body>
-	<div id="map"></div>
-	<div id="control-container">
-		<form>
-			<p class="h4 mb-4 header">Altimetry Explorer 2.0</p>
-		  <div class="row">
-		    <div class="col">
-					 <label for="start-picker" class="col-sm-12 col-form-label">Start Date:</label>
-		      <input id="start-datepicker" width="150" />
-		    </div>
-		    <div class="col">
-					<label for="end-picker" class="col-sm-12 col-form-label">End Date:</label>
-		      <input id="end-datepicker" width="150" />
+	<div class="content">
+		<div id="map"></div>
+		<div id="control-container">
+			<form>
+				<p class="h5 mb-4 header">Altimetry Explorer 2.0</p>
+			  <div class="row">
+			    <div class="col">
+						 <label for="start-picker" class="col-sm-12 col-form-label">Start Date:</label>
+			      <input id="start-datepicker" width="175" />
+			    </div>
+			    <div class="col">
+						<label for="end-picker" class="col-sm-12 col-form-label">End Date:</label>
+			      <input id="end-datepicker" width="175" />
+			    </div>
+			  </div>
+				<hr />
+				<div class="row">
+					<label for="satellite-selection" class="col-sm-12 col-form-label"> Satellite Product Selection <i class="fas fa-satellite"></i> </label>
+					<select class="form-control form-compact" id="satellite-selection">
+						<option>Jason1</option>
+	          <option>Jason2</option>
+	          <option>Jason3</option>
+	          <option>Saral</option>
+					</select>
+				</div>
+				<hr />
+				<div class="row">
+					<div class="col mb-2">
+						<div class="form-group">
+							<input type="checkbox" checked data-toggle="toggle" data-size="sm" data-onstyle="primary" data-offstyle="outline-secondary" id="filterCheck">
+							<label class="form-check-label" for="filterCheck">
+								Apply outlier filter?
+							</label>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col">
+						<button type="button" class="btn btn-primary btn-custom" data-targe="#chartModal" id="timeseries-btn">
+							<span class="fas fa-chart-area" aria-hidden="true"></span> Get Timeseries
+						</button>
+					</div>
+					<div class="col">
+						<button type="button" class="btn btn-primary btn-custom" data-target="#exampleModal" id="rawdata-btn">
+							<span class="fas fa-table" aria-hidden="true"></span> Access Raw Data
+						</button>
+					</div>
+				</div>
+
+			</form>
+		</div>
+		<div class="modal" role="dialog" id="tableModal" tabindex="-1" aria-labelledby="tableModal" aria-hidden="true">
+		  <div class="modal-dialog" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title">Data Table Results</h5>
+		        <button type="button" class="close" id="close-data" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+		      </div>
+		      <div class="modal-body">
+						<div class="loader" id="tableLoader"></div>
+						<table id="table" class="display" width="100%"></table>
+		        <!-- <p>Modal body text goes here.</p> -->
+		      </div>
+		      <div class="modal-footer">
+		      </div>
 		    </div>
 		  </div>
-			<br />
-			<div class="row">
-				<label for="spatial-select" class="col-sm-12 col-form-label">Select Spatial Extent</label>
-				<div class="btn-group-vertical btn-group-toggle" data-toggle="buttons" id="spatial-select">
-			  <label class="btn btn-secondary active">
-			    <input type="radio" name="options" id="option1" checked>
-					<span class="fas fa-globe"></span> Use current map extent
-			  </label>
-				<label class="btn btn-secondary">
-			    <input type="radio" name="options" id="option1">
-					<span class="fas fa-map"></span> Countries
-			  </label>
-			  <label class="btn btn-secondary">
-			    <input type="radio" name="options" id="option2">
-					<span class="fas fa-map-marker-alt"></span> Surface Observation Sites
-			  </label>
-				<label class="btn btn-secondary">
-			    <input type="radio" name="options" id="option1">
-					<span class="fas fa-draw-polygon"></span> Draw Geometry
-			  </label>
-				</div>
-				</div>
-			<!-- </div> -->
-			<hr />
-			<div class="row">
-				<label for="satellite-selection" class="col-sm-12 col-form-label">Satellite Product Selection</label>
-				<select class="form-control form-compact" id="satellite-selection">
-					<option>Jason1</option>
-          <option>Jason2</option>
-          <option>Jason3</option>
-          <option>SARAL</option>
-				</select>
-			</div>
-			<hr />
-			<div class="row">
-				<div class="col">
-					<button type="button" class="btn btn-success btn-custom">
-						<span class="fas fa-cloud-download-alt" aria-hidden="true"></span> Fetch Data
-					</button>
-				</div>
-				<div class="col">
-					<button type="button" class="btn btn-primary btn-custom">
-						<span class="fas fa-external-link-alt" aria-hidden="true"></span> Open in Playground
-					</button>
+		</div>
+		<div class="modal" role="dialog" id="chartModal" tabindex="-1" aria-labelledby="chartModal" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Water Level Chart</h5>
+						<button type="button" class="close" id="close-chart" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<div class="loader" id="chartLoader"></div>
+						<figure class="highcharts-figure">
+    					<div id="chart"></div>
+						</figure>
+						<!-- <p>Modal body text goes here.</p> -->
+					</div>
+					<div class="modal-footer">
+					</div>
 				</div>
 			</div>
-		</form>
-
-
+		</div>
 	</div>
-  <script src="{{ url_for('static', filename='js/map.js') }}"></script>
-
 </body>
 
 </html>
