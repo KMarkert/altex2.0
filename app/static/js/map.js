@@ -209,6 +209,7 @@ $(function(){
         chart.destroy()
       }
       catch(err) {
+        chart = null
         console.log(err.message);
       }
     }
@@ -234,7 +235,7 @@ $(function(){
         var chartSeries = result['index'].map(function(v, i) {
           return [v, result['data'][i]];
         });
-        chart= Highcharts.chart('chart', {
+        chart = Highcharts.chart('chart', {
           title: {
             text: ''
           },
@@ -292,6 +293,7 @@ $(function(){
         })
       },
       error: function(data) {
+        $('#chartLoader').toggle()
         alert(data.error)
       }
     });
