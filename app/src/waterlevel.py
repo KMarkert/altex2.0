@@ -24,10 +24,11 @@ def outlierFilter(series):
     labels = None
 
     if series.size > 4:
-
+        print('running filter...')
+        i = 0
         while (diff > 5) & (series.size>=2):
             kmeans = KMeans(init='k-means++', n_clusters=2, n_init=10,
-                random_state=SEED)
+                max_iter=100, algorithm="elkan", random_state=SEED)
 
             X = np.vstack([series, series]).T
 
@@ -46,11 +47,19 @@ def outlierFilter(series):
             series = series[idx]
             diff = np.abs(clusters[0] - clusters[1])
 
+            i+=1
+
+            if i > 50:
+                break
+
+        print(f'n iterations: {i}')
+
         kmeans = None
 
         clusterMean = series.mean()
         std = series.std()
 
+        print('filtering cluster')
         while std > 0.3:
             dist = np.abs(series - clusterMean)
             mask = series != np.argmax(dist)
@@ -58,6 +67,7 @@ def outlierFilter(series):
 
             std = series.std()
 
+        print('applying iqr filter')
         heights = iqrFilter(series)
 
     else:
