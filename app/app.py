@@ -100,3 +100,6 @@ def getRaw():
             return_obj['error'] = str(e)
 
     return jsonify(return_obj)
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0')
