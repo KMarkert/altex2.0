@@ -6,31 +6,33 @@ from sklearn.cluster import KMeans
 SEED = 0
 
 def iqrFilter(series):
-    q1 = np.percentile(series, 25)
-    q3 = np.percentile(series, 75)
+    heights = series.copy()
+    q1 = np.percentile(heights, 25)
+    q3 = np.percentile(heights, 75)
 
-    iqr = stats.iqr(series)
+    iqr = stats.iqr(heights)
 
     lowerBound = q1 - (iqr * 1.5)
     upperBound = q3 + (iqr * 1.5)
 
-    mask = ((series >= lowerBound) & (series <= upperBound))
+    mask = ((heights >= lowerBound) & (heights <= upperBound))
 
-    return series[mask]
+    return heights[mask]
 
 def outlierFilter(series):
+    heights = series.copy()
 
-    diff = np.ptp(series, axis=0)
+    diff = np.ptp(heights, axis=0)
     labels = None
 
-    if series.size > 4:
+    if heights.size > 4:
         print('running filter...')
         i = 0
-        while (diff > 5) & (series.size>=2):
-            kmeans = KMeans(init='k-means++', n_clusters=2, n_init=10,
+        while (diff > 5) & (heights.size>=3):
+            kmeans = KMeans(init='k-means++', n_clusters=2, n_init=20,
                 max_iter=100, algorithm="elkan", random_state=SEED)
 
-            X = np.vstack([series, series]).T
+            X = np.vstack([heights, heights]).T
 
             kmeans.fit(X)
             clusters = kmeans.cluster_centers_.squeeze()[:, 0]
@@ -44,7 +46,7 @@ def outlierFilter(series):
             else:
                 idx = class2
 
-            series = series[idx]
+            heights = heights[idx]
             diff = np.abs(clusters[0] - clusters[1])
 
             i+=1
@@ -56,22 +58,21 @@ def outlierFilter(series):
 
         kmeans = None
 
-        clusterMean = series.mean()
-        std = series.std()
+        clusterMean = heights.mean()
+        std = heights.std()
 
         print('filtering cluster')
-        while std > 0.3:
-            dist = np.abs(series - clusterMean)
-            mask = series != np.argmax(dist)
-            series = series[mask]
+        while (std > 0.3) and (heights.size >=3):
+            dist = np.abs(heights - clusterMean)
+            mask = np.arange(heights.size) != np.argmax(dist)
+            print(heights)
+            heights = heights[mask]
 
-            std = series.std()
+            std = heights.std()
 
-        print('applying iqr filter')
-        heights = iqrFilter(series)
-
-    else:
-        heights = series
+        if heights.size >= 3:
+            print('applying iqr filter')
+            heights = iqrFilter(heights)
 
     return heights.mean()
 
