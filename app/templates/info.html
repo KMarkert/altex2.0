@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Information{% endblock %}
+{% block head %}
+ {{ super() }}
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/info.css') }}">
+{% endblock %}
+{% block content %}
+  <div class="container-fluid content">
+    <div class="row" id="how-to">
+      <div class="container-fluid info-container">
+        <h3>How to use</h3>
+        <p>
+          this is some text
+        </p>
+      </div>
+    </div>
+    <div class="row" id="altimetry">
+      <div class="container-fluid info-container">
+        <h3>Satellite altimetry</h3>
+        <div class="row">
+          <div class="col-md-7">
+            <p>
+              Satellite altimetry measures the time taken by a radar pulse to travel from the satellite antenna
+              to the surface and back to the satellite receiver. Combined with precise satellite location data,
+              altimetry measurements yield sea-surface heights. Figure 1 illustrates how water level can be
+              retrieved from the satellite. Basically, the signal emitted is timed on how long it takes to return
+              to the satellite (called the Range). The range is then subtracted from the orbit height and
+              corrected for atmospheric effects to obtain water level with respect to an reference surface (or
+              ellipsoid).
+              <br />
+              Satellite altimetry requires a lot of information to be taken into account before being able to use
+              the data. Data processing is a major component, where specific parameters are needed to be extracted
+              and combined to provide precise information on water level. Also, many factors need to be considered
+              when determining which data points to use for calculating water levels.
+              <br />
+              This web application aims to provide simplified access in a quick and efficient manner for users to access
+              water level information over inland water bodies. Users need to select specific
+            </p>
+          </div>
+          <div class="col-lg-1">
+          </div>
+          <div class="col-lg-4">
+            <img src="https://www.eumetsat.int/jason/media/graphics/j2_how_alt_works.jpg",alt="altimetry schematic" width="100%" />
+            <p>
+              Figure 1. Schematic of satellite altimetry illustrating how water level heights can be estimated.
+            </p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-7">
+            <p>
+              There are many satellite altimetry sensors that have acquired data throughout the years. AltEx currently hosts some of
+              of the datasets in a harmonized manner. These sensors include: Jason2, Jason3, and Saral. It is expected to include more
+              sensors with time.
+            </p>
+          </div>
+          <div class="col-lg-1">
+          </div>
+          <div class="col-lg-4">
+            <img src="{{ url_for('static', filename='img/altimetry_sensors.png') }}",alt="altimetry sensors" width="100%" />
+            <p>
+              Figure 2. Gannt chart showing time covered by specific altimetry sensors
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row" id="citations">
+      <div class="container-fluid info-container">
+        <h3>Citing research</h3>
+          <p>
+            The data served through this application aims to be of high scientific quality and much of the work is based off of peer-reviewed scientific
+            work. Therefore, if using this web application for scientific analysis or operations, please consider citing the following publications:
+          </p>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">Markert, K. N., Pulla, S. T., Lee, H., Markert, A. M., Anderson, E. R., Okeowo, M. A., & Limaye, A. S. (2019).
+              AltEx: An open source web application and toolkit for accessing and exploring altimetry datasets. <em>Environmental modelling & software</em>,
+              117, 164-175. doi: <a href="https://doi.org/10.1016/j.envsoft.2019.03.021"> 10.1016/j.envsoft.2019.03.021</a></li>
+            <li class="list-group-item">Okeowo, M. A., Lee, H., Hossain, F., & Getirana, A. (2017). Automated generation of lakes and reservoirs water
+               elevation changes from satellite radar altimetry. <em>IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing</em>,
+               10(8), 3465-3481. doi: <a href="https://doi.org/10.1109/JSTARS.2017.2684081"> 10.1109/JSTARS.2017.2684081</a></li>
+          </ul>
+      </div>
+    </div>
+  </div>
+{% endblock %}

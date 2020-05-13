@@ -1,0 +1,96 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.content {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  margin-top:56px;
+  margin-bottom: 50px;
+  overflow: hidden;
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 50px; /* Set the fixed height of the footer here */
+  line-height: 50px; /* Vertically center the text there */
+  padding-left: 10px;
+  padding-right: 10px;
+  background-color: #ededed;
+}
+
+#lander {
+  position: absolute;
+  top: 56px;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  margin-bottom: 50px;
+}
+
+.landing-img {
+  filter: brightness(50%);
+  width: 100%;
+  max-height: 450px;
+  min-height: 200px;
+}
+
+.landing-btn {
+  width: 300px;
+  margin: 10px;
+}
+
+.carousel-caption {
+  height: 75%;
+  width:100%;
+  left:0 !important;
+}
+
+/** SPINNER CREATION **/
+
+.loader {
+  display: none;
+  position: relative;
+  text-align: center;
+  margin: 15px auto 35px auto;
+  z-index: 9999;
+  width: 80px;
+  height: 80px;
+  border: 10px solid rgba(0, 0, 0, .3);
+  border-radius: 50%;
+  border-top-color: #000;
+  animation: spin 1s ease-in-out infinite;
+  -webkit-animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+@-webkit-keyframes spin {
+  to {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+/* rotator */
+.rotate {
+  animation: rotation 8s infinite linear;
+  background-color: rgba(255,255,255, .0);
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}

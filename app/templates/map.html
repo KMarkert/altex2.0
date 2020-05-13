@@ -1,23 +1,12 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-	<meta charset="utf-8" />
-	<title>AltEx2.0</title>
-	<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-
+{% extends "base.html" %}
+{% block title %}Map{% endblock %}
+{% block head %}
+ {{ super() }}
 	<!-- mapbox map api -->
 	<script src="https://api.tiles.mapbox.com/mapbox-gl-js/v1.6.0/mapbox-gl.js"></script>
 	<link href="https://api.tiles.mapbox.com/mapbox-gl-js/v1.6.0/mapbox-gl.css" rel="stylesheet" />
 	<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.0.9/mapbox-gl-draw.js'></script>
 	<link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.0.9/mapbox-gl-draw.css' type='text/css' />
-	<!-- bootstrap -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-	<link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" rel="stylesheet">
-	<script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
 	<!-- datepicker -->
 	<script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js" type="text/javascript"></script>
   <link href="https://unpkg.com/gijgo@1.9.13/css/gijgo.min.css" rel="stylesheet" type="text/css" />
@@ -34,8 +23,7 @@
 	<script src="https://code.highcharts.com/modules/exporting.js"></script>
 	<script src="https://code.highcharts.com/modules/export-data.js"></script>
 	<script src="https://code.highcharts.com/modules/accessibility.js"></script>
-	<!-- font awesome icons -->
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" rel="stylesheet" type="text/css" />
+
 	<!-- date.js -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/datejs/1.0/date.min.js" type="text/javascript"></script>
 
@@ -43,14 +31,14 @@
 	<script src="{{ url_for('static', filename='js/map.js') }}"></script>
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
 
-</head>
+{% endblock %}
 
-<body>
-	<div class="content">
+{% block content %}
+  <div class="container-fluid content">
 		<div id="map"></div>
 		<div id="control-container">
 			<form>
-				<p class="h5 mb-4 header">Altimetry Explorer 2.0</p>
+				<p class="h5 mb-4 header">App Navigation</p>
 			  <div class="row">
 			    <div class="col">
 						 <label for="start-picker" class="col-sm-12 col-form-label">Start Date:</label>
@@ -75,7 +63,7 @@
 				<div class="row">
 					<div class="col mb-2">
 						<div class="form-group">
-							<input type="checkbox" checked data-toggle="toggle" data-size="sm" data-onstyle="primary" data-offstyle="outline-secondary" id="filterCheck">
+							<input type="checkbox" checked data-toggle="toggle" data-size="sm" data-onstyle="secondary" data-offstyle="outline-secondary" id="filterCheck">
 							<label class="form-check-label" for="filterCheck">
 								Apply outlier filter on timeseries?
 							</label>
@@ -84,12 +72,12 @@
 				</div>
 				<div class="row">
 					<div class="col">
-						<button type="button" class="btn btn-primary btn-custom" data-target="#exampleModal" id="rawdata-btn">
+						<button type="button" class="btn btn-secondary btn-custom" data-target="#exampleModal" id="rawdata-btn">
 							<span class="fas fa-table" aria-hidden="true"></span> Access Raw Data
 						</button>
 					</div>
 					<div class="col">
-						<button type="button" class="btn btn-primary btn-custom" data-targe="#chartModal" id="timeseries-btn">
+						<button type="button" class="btn btn-secondary btn-custom" data-targe="#chartModal" id="timeseries-btn">
 							<span class="fas fa-chart-area" aria-hidden="true"></span> Get Timeseries
 						</button>
 					</div>
@@ -137,7 +125,5 @@
 				</div>
 			</div>
 		</div>
-	</div>
-</body>
-
-</html>
+  </div>
+{% endblock %}

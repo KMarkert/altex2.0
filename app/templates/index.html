@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+  <div class="container-fluid content" id="lander">
+    <div class="row" >
+      <div class="col-lg-12">
+        <img class="landing-img" src="{{ url_for('static', filename='img/landing_img.jpg') }}"/>
+        <div class="carousel-caption text-center">
+          <h1>Altimetry Explorer</h1>
+          <h5> Access to global water level information from satellite altimetry</h5>
+        </div>
+      </div>
+    </div>
+    <br />
+    <div class="row" >
+      <div class="col-lg-6 text-center">
+        <a class="btn btn-lg btn-secondary landing-btn" id="info-btn" href="/map/" role="button">
+          <span class="fas fa-map" aria-hidden="true"></span> Access data
+        </a>
+      </div>
+      <div class="col-lg-6 text-center">
+        <a class="btn btn-lg btn-secondary landing-btn" id="info-btn" href="/info/" role="button">
+          <span class="fas fa-info-circle" aria-hidden="true"></span> Read more
+        </a>
+      </div>
+    </div>
+  </div>
+{% endblock %}

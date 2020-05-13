@@ -12,20 +12,59 @@ CORS(app,resources={r"/api/*": {"origins": "*"}})
 
 @app.route("/")
 def index():
-  return "Hello, world!"
+  return render_template("index.html")
 
 @app.route("/map/")
-def showMap():
+def map_page():
     return render_template("map.html")
 
-@app.route("/api/")
+@app.route("/info/")
+def info_page():
+    return render_template("info.html")
+
+@app.errorhandler(404)
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template('404.html'), 404
+
+@app.route("/api/", methods=['GET'])
 def get_capabilities():
-    # return_obj = {}
-    # if request.method is 'GET':
+    info = {
+        "api": {
+            "getWaterLevel": {
+                "startTime": "beginning time to access altimetry data. accepts "
+                    "ISO 8601 date format (YYYY-MM-DD)",
+                "endTime": "ending time to access altimetry data. accepts "
+                    "ISO 8601 date format (YYYY-MM-DD)",
+                "sensor" : "name of sensor to access data. options are: "
+                    "Jason2, Jason3, and Saral",
+                "region": "a string of polygon coordinates creating a linearring "
+                    "polygon formatted as 'x y, x y , ... , x y'. mutually exclusive "
+                    "with bbox parameter",
+                "bbox" : "list of bounding box coordinates to filter data formatted "
+                    "as [W,S,E,N]. mutually exclusive with region parameter",
+                "applyFilter": "boolean parameter to use the outlier filter when "
+                    "estimating daily water levels"
+            },
+            "getTable": {
+                "startTime": "beginning time to access altimetry data. accepts "
+                    "ISO 8601 date format (YYYY-MM-DD)",
+                "endTime": "ending time to access altimetry data. accepts "
+                    "ISO 8601 date format (YYYY-MM-DD)",
+                "sensor" : "name of sensor to access data. options are: "
+                    "Jason2, Jason3, and Saral",
+                "region": "a string of polygon coordinates creating a linearring "
+                    "polygon formatted as 'x y, x y , ... , x y'. mutually exclusive "
+                    "with bbox parameter",
+                "bbox" : "list of bounding box coordinates to filter data formatted "
+                    "as [W,S,E,N]. mutually exclusive with region parameter",
+            }
+        }
+    }
 
-    return 'Hello API!'
+    return jsonify(info)
 
-@app.route("/api/getWaterLevel/")
+@app.route("/api/getWaterLevel/", methods=['GET'])
 def getWaterLevel():
     return_obj = {}
     if request.method == 'GET':
@@ -42,8 +81,6 @@ def getWaterLevel():
             else:
                 queryParams['bbox'] = request.args.get("bbox")
 
-
-            # region = ['-122.21','40.742','-122.20','40.753']
             q = dbio.constructQuery(**queryParams)
             df= dbio.queryDb(q,username=config.DBUSERNAME,
                 host=config.DBHOST,port=config.DBPORT,dbname=config.DBNAME)
@@ -66,8 +103,8 @@ def getWaterLevel():
     return jsonify(return_obj)
 
 
-@app.route("/api/getRaw/",methods=['GET'])
-def getRaw():
+@app.route("/api/getTable/", methods=['GET'])
+def getTable():
     return_obj = {}
     if request.method == 'GET':
         try:
@@ -78,16 +115,12 @@ def getRaw():
             queryParams['table'] = request.args.get("sensor")
 
             region = request.args.get("region")
-            print(region)
             if region is not None:
                 queryParams['region'] = region
             else:
                 queryParams['bbox'] = request.args.get("bbox")
 
-            print(queryParams)
-
             q = dbio.constructQuery(**queryParams)
-            # print(q)
             df= dbio.queryDb(q,username=config.DBUSERNAME,
                 host=config.DBHOST,port=config.DBPORT,dbname=config.DBNAME)
 

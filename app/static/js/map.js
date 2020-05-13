@@ -1,5 +1,13 @@
 
-var chart
+var chart;
+
+const today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+const sensorDates = new Object({
+  "Jason1": {"start":"2002-01-01","end":"2009-01-01"},
+  "Jason2": {"start":"2008-07-04","end":"2017-07-01"},
+  "Jason3": {"start":"2016-02-12","end":today},
+  "Saral": {"start":"2016-02-12","end":today}
+})
 
 $(function(){
 
@@ -27,7 +35,6 @@ $(function(){
       'type': 'vector',
       'url': 'mapbox://km0033.ck9xayqc601gj2kqaifekwpaw-6kkbo'
     });
-
     map.addLayer({
       'id': 'jason-layer',
       'type': 'line',
@@ -44,7 +51,6 @@ $(function(){
       'type': 'vector',
       'url': 'mapbox://km0033.ck9xb3lfi01om2jqa3xkq2l2c-7mohd'
     });
-
     map.addLayer({
       'id': 'saral-layer',
       'type': 'line',
@@ -57,33 +63,45 @@ $(function(){
     });
     map.setLayoutProperty('saral-layer', 'visibility', 'none');
 
+    // load the jrc reference water layer
+    map.addSource('jrc-tiles', {
+      'type': 'raster',
+      'tiles': [
+        'https://storage.cloud.google.com/mekong-tf/hydrafloods/{z}/{x}/{y}.png'
+      ],
+      'tileSize': 256,
+    });
+    map.addLayer({
+      'id': 'simple-tiles',
+      'type': 'raster',
+      'source': 'jrc-tiles',
+      'minzoom': 0,
+      'maxzoom': 12
+    });
+
+
   });
 
-  var today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-  $('#start-datepicker').datepicker({
-    uiLibrary: 'bootstrap4',
-    format: 'yyyy-mm-dd',
-    minDate: '2008-07-04',
-    maxDate: function () {
-      if ($('#endDate').val()) {
-        return $('#endDate').val();
-      }
-      else {
-        return today
-      }
-    }
-  });
-  $('#end-datepicker').datepicker({
-    uiLibrary: 'bootstrap4',
-    format: 'yyyy-mm-dd',
-    maxDate: today,
-    minDate: function () {
-      return $('#start-datepicker').val();
-    }
-  });
+  var iniStart = sensorDates['Jason1']['start'], iniEnd = sensorDates['Jason1']['end']
+  buildDatepickers(iniStart,iniEnd,iniStart,iniEnd)
 
   $("#satellite-selection").on("change",function() {
     var sensorName = $(this).val()
+
+    var dates = getDates()
+    var start = dates[0], end = dates[1]
+    $('#start-datepicker').datepicker('destroy');
+    $('#end-datepicker').datepicker('destroy');
+
+    var dateLookup = sensorDates[sensorName]
+    if (start === ''){
+      start = dateLookup['start']
+    }
+    if (end === '') {
+      end = dateLookup['end']
+    }
+    buildDatepickers(new Date(dateLookup['start']),new Date(dateLookup['end']),start,end);
+
     if (sensorName.includes('Jason')){
       map.setLayoutProperty('jason-layer', 'visibility', 'visible');
       map.setLayoutProperty('saral-layer', 'visibility', 'none');
@@ -98,15 +116,11 @@ $(function(){
 
     var sensor = $("#satellite-selection").val()
 
-    var start = $('#start-datepicker').val()
-    if (start == ''){
-      alert("Please provide a start time")
-      return
-    }
+    var dates = getDates()
+    var start = dates[0], end = dates[1]
 
-    var end = $('#end-datepicker').val()
-    if (end == ''){
-      alert("Please provide an end time")
+    if (start == '' || end == ''){
+      alert("Please provide a start and/or end time")
       return
     }
 
@@ -134,7 +148,7 @@ $(function(){
 
     $.ajax({
       type: 'GET',
-      url: '/api/getRaw',
+      url: '/api/getTable',
       dataType: "json",
       data: payload,
       success: function(data){
@@ -180,15 +194,11 @@ $(function(){
 
     var filter = $("#filterCheck").is(":checked")
 
-    var start = $('#start-datepicker').val()
-    if (start == ''){
-      alert("Please provide a start time")
-      return
-    }
+    var dates = getDates()
+    var start = dates[0], end = dates[1]
 
-    var end = $('#end-datepicker').val()
-    if (end == ''){
-      alert("Please provide an end time")
+    if (start == '' || end == ''){
+      alert("Please provide a start and/or end time")
       return
     }
 
@@ -321,4 +331,38 @@ function constructGeomString(features){
     regionStr += vertex
   }
   return regionStr
+}
+
+function buildDatepickers(minDate,maxDate,defaultStart,defaultEnd){
+   $startpicker = $('#start-datepicker').datepicker({
+    uiLibrary: 'bootstrap4',
+    format: 'yyyy-mm-dd',
+    minDate: minDate,
+    maxDate: function () {
+      if ($('#endDate').val()) {
+        return $('#endDate').val();
+      }
+      else {
+        return maxDate
+      }
+    }
+  });
+  $startpicker.value(defaultStart);
+
+  $endpicker = $('#end-datepicker').datepicker({
+    uiLibrary: 'bootstrap4',
+    format: 'yyyy-mm-dd',
+    defaultDate: defaultEnd,
+    maxDate: maxDate,
+    minDate: function () {
+      return $('#start-datepicker').val();
+    }
+  });
+  $endpicker.value(defaultEnd);
+}
+
+function getDates() {
+  var start = $('#start-datepicker').val()
+  var end = $('#end-datepicker').val()
+  return [start,end]
 }
