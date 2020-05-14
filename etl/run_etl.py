@@ -21,6 +21,6 @@ for t in range(iters):
     cmd = f'python {script} etl {sensor} {workingdir} {dbname} --startTime {dateStr} --endTime {dateStr} --username {username} --spatialFilter {landFile} --cleanup'
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     out, err = proc.communicate()
-    print(out)
-    print(error)
+    print(f"STDOUT: {out}")
+    print(f"STDERR: {err}")
     print(f'{datetime.datetime.now()}: done ingesting \n')
