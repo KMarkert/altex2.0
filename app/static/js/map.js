@@ -61,22 +61,6 @@ $(function(){
     });
     map.setLayoutProperty('saral-layer', 'visibility', 'none');
 
-    // load the jrc reference water layer
-    map.addSource('jrc-tiles', {
-      'type': 'raster',
-      'tiles': [
-        'https://storage.cloud.google.com/mekong-tf/hydrafloods/{z}/{x}/{y}.png'
-      ],
-      'tileSize': 256,
-    });
-    map.addLayer({
-      'id': 'simple-tiles',
-      'type': 'raster',
-      'source': 'jrc-tiles',
-      'minzoom': 0,
-      'maxzoom': 12
-    });
-
 
   });
 
