@@ -24,7 +24,7 @@ def constructQuery(startTime=None,endTime=None,table=None,region=None,columns=No
     else:
         cStr = '*'
 
-    query = f"SELECT {cStr} FROM {table.lower()} "
+    query = f"SELECT {cStr}, '{table.lower()}' as sensor FROM {table.lower()}"
 
     prepend = 'WHERE'
 

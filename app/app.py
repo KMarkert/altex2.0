@@ -88,8 +88,6 @@ def getWaterLevel():
             df= dbio.queryDb(q,username=config.DBUSERNAME,
                 host=config.DBHOST,port=config.DBPORT,dbname=config.DBNAME)
 
-            df['sensor'] = [request.args.get("sensor") for i in range(df.shape[0])]
-
             filter = request.args.get("applyFilter")
             if filter in ['True','true',1,'TRUE']:
                 filter = True
@@ -126,9 +124,6 @@ def getTable():
             q = dbio.constructQuery(**queryParams)
             df= dbio.queryDb(q,username=config.DBUSERNAME,
                 host=config.DBHOST,port=config.DBPORT,dbname=config.DBNAME)
-
-            # add the sensor name to the dataframe
-            df['sensor'] = [request.args.get("sensor") for i in range(df.shape[0])]
 
             return_obj['result'] = df.to_json(orient='split',index=False)
 
