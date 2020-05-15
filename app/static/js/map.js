@@ -11,14 +11,12 @@ const sensorDates = new Object({
 
 $(function(){
 
-  // $('#filterCheck').bootstrapToggle();
-
   mapboxgl.accessToken = 'pk.eyJ1Ijoia20wMDMzIiwiYSI6ImNrOWFsMmw3eDA0cm8zbWxrczB4OXA2OWUifQ.0NUvgcQYupWVsnu2vB974A';
   var map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/light-v10',
     zoom: 4,
-    center: [0,50]//[100,15]
+    center: [100,15]
   });
 
   var Draw = new MapboxDraw();
@@ -82,7 +80,7 @@ $(function(){
 
   });
 
-  var iniStart = sensorDates['Jason1']['start'], iniEnd = sensorDates['Jason1']['end']
+  var iniStart = sensorDates['Jason2']['start'], iniEnd = sensorDates['Jason2']['end']
   buildDatepickers(iniStart,iniEnd,iniStart,iniEnd)
 
   $("#satellite-selection").on("change",function() {
@@ -158,6 +156,7 @@ $(function(){
         var result = JSON.parse(data.result)
         if (result['data'].length === 0){
           alert ("Selection returned no data, please refine space and time parameters")
+          $('#tableModal').modal('toggle')
           return
         }
         // get the result column information into a format for Datatables

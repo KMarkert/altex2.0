@@ -51,12 +51,16 @@
 			  </div>
 				<hr />
 				<div class="row">
-					<label for="satellite-selection" class="col-sm-12 col-form-label"> Satellite Product Selection <i class="fas fa-satellite"></i> </label>
+					<label for="satellite-selection" class="col-sm-12 col-form-label"> Satellite Product Selection
+            <button type="button" class="btn btn-sm" data-toggle="modal" data-target="#infoModal">
+              <i class="fas fa-info-circle"></i>
+            </button>
+          </label>
 					<select class="form-control form-compact" id="satellite-selection">
-						<option>Jason1</option>
+						<!-- <option>Jason1</option> -->
 	          <option>Jason2</option>
 	          <option>Jason3</option>
-	          <option>Saral</option>
+	          <!-- <option>Saral</option> -->
 					</select>
 				</div>
 				<hr />
@@ -125,5 +129,64 @@
 				</div>
 			</div>
 		</div>
+    <div class="modal" role="dialog" id="infoModal" tabindex="-1" aria-labelledby="infoModal" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Altimetry Sensor Information</h5>
+            <button type="button" class="close" id="close-chart" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">Sensor</th>
+                  <th scope="col">Temporal Extent</th>
+                  <th scope="col">Repeat Cycle</th>
+                  <th scope="col">Ground Sampling</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Jason 1</th>
+                  <td>2002-01-01 to 2009-01-01</td>
+                  <td>10 days</td>
+                  <td>20Hz (approximately 300m)</td>
+                </tr>
+                <tr>
+                  <th scope="row">Jason 2</th>
+                  <td>2008-07-04 to 2017-07-01</td>
+                  <td>10 days</td>
+                  <td>20Hz (approximately 300m)</td>
+                </tr>
+                <tr>
+                  <th scope="row">Jason 3</th>
+                  <td>2016-02-12 to present</td>
+                  <td>10 days</td>
+                  <td>20Hz (approximately 300m)</td>
+                </tr>
+                <tr>
+                  <th scope="row">Saral</th>
+                  <td>2016-02-12 to present</td>
+                  <td>32 days</td>
+                  <td>40Hz (approximately 175m)</td>
+                </tr>
+                <tr>
+                  <th scope="row">Sentinel 3</th>
+                  <td>2016-02-12 to present</td>
+                  <td>27 days</td>
+                  <td>20Hz (approximately 300m)</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- <p>Modal body text goes here.</p> -->
+          </div>
+          <div class="modal-footer">
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 {% endblock %}
