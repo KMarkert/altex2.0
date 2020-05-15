@@ -75,7 +75,7 @@ def calcWaterLevel(df,applyFilter=False):
     df = df.set_index('time')
 
     # get the corretion factor for jason satellite series
-    sensorCorr = [0.7 if 'jason' in i else 0. for i in df['sensor']]
+    df['sensor_corr'] = [0.7 if 'jason' in i else 0. for i in df['sensor']]
 
     # calculate the media correction factor and scale units to meters
     mediaCorr = (df['model_dry_tropo_corr'] + df['model_wet_tropo_corr']\
@@ -85,7 +85,7 @@ def calcWaterLevel(df,applyFilter=False):
     geoidCorr = df['geoid']*1e-5
 
     # calculate difference between satellite altitude and range with correction factors
-    df['waterLevel'] = df['alt'] - (mediaCorr + df['ice_range']) - geoidCorr  - sensorCorr
+    df['waterLevel'] = df['alt'] - (mediaCorr + df['ice_range']) - geoidCorr  - df['sensor_corr']
 
     # get only the water level series
     series = df['waterLevel']
