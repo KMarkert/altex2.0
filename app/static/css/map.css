@@ -1,6 +1,7 @@
 #map {
   position: absolute;
   top: 56px;
+  left: 0px;
   bottom: 0px;
   width: 100%;
   margin: 0;
@@ -9,13 +10,20 @@
 
 #control-container {
   position: absolute;
-  top: 71px;
+  top: 70px;
   left: 15px;
-  width: 440px;
-  height:450px;
+  height: 450px;
+  width: 450px;
   padding: 10px;
   background-color: #fff;
   box-shadow: 1px 1px 10px #404040;
+  overflow: hidden;
+}
+
+#app-nav-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 
 #spatial-select {

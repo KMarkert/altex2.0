@@ -34,13 +34,18 @@ $(function(){
       'type': 'raster',
       'url': 'mapbox://km0033.jrctiles',
       'tileSize': 256,
+      'attribution':
+      'Map Data © <a target="_blank" rel="noopener" href="https://ec.europa.eu/info/departments/joint-research-centre_en">EC JRC</a>, ' +
+      '<a target="_blank" rel="noopener" href="https://earthengine.google.com">Google Earth Engine</a>'
     });
     map.addLayer({
       'id': 'jrc-layer',
       'type': 'raster',
       'source': 'jrc-tiles',
+      'minzoom': 4,
+      'maxzoom': 22
     });
-    
+
     // load the Jason ground tracks from tileset
     map.addSource('jason_groundtracks', {
       'type': 'vector',
@@ -105,6 +110,30 @@ $(function(){
       }
     }
     $('#satellite-selection').selectpicker('refresh');
+
+  })
+
+  $("#app-nav-btn").on("click",function() {
+    var $icon = $("#app-nav-btn-icon")
+    var iconClass = $icon.attr('class')
+    console.log()
+    if (iconClass.includes("minus")) {
+      $icon.removeClass("fas fa-minus")
+      $icon.addClass("fas fa-plus")
+      $("#app-nav-btn").removeClass("btn-outline-danger")
+      $("#app-nav-btn").addClass("btn-outline-primary")
+
+      $("#control-container").css("height","50px")
+    }
+     else if (iconClass.includes("plus")) {
+       $icon.removeClass("fas fa-plus")
+       $icon.addClass("fas fa-minus")
+       $("#app-nav-btn").removeClass("btn-outline-primary")
+       $("#app-nav-btn").addClass("btn-outline-danger")
+
+       $("#control-container").css("height","450px")
+     }
+
 
   })
 
