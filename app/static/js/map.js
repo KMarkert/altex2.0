@@ -27,7 +27,20 @@ $(function(){
 
   map.addControl(Draw, 'top-right');
 
+
+
   map.on('load', function() {
+    map.addSource('jrc-tiles', {
+      'type': 'raster',
+      'url': 'mapbox://km0033.jrctiles',
+      'tileSize': 256,
+    });
+    map.addLayer({
+      'id': 'jrc-layer',
+      'type': 'raster',
+      'source': 'jrc-tiles',
+    });
+    
     // load the Jason ground tracks from tileset
     map.addSource('jason_groundtracks', {
       'type': 'vector',
@@ -66,6 +79,34 @@ $(function(){
 
   var iniStart = sensorDates['Jason2']['start'], iniEnd = sensorDates['Jason2']['end']
   buildDatepickers(iniStart,iniEnd,iniStart,iniEnd)
+
+  $('#start-datepicker, #end-datepicker').on("change",function(){
+    var dates = getDates()
+    var start = Date.parse(dates[0]), end = Date.parse(dates[1])
+
+    console.log(start,end)
+
+    for (sensor in sensorDates) {
+      var startAvail = Date.parse(sensorDates[sensor]['start'])
+      var endAvail = Date.parse(sensorDates[sensor]['end'])
+
+      var op = document.getElementById("satellite-selection").getElementsByTagName("option");
+
+      if (end < startAvail || start > endAvail) {
+        console.log("disabling selector for " + sensor)
+        // for (i in op){
+        //   if (op[i] == sensor) {
+        //     console.log(op[i])
+        //     op[i].disabled = true;
+        //   }
+        // }
+        // $(`#satellite-selection option[value="${sensor}"]`).prop('disabled', true);
+        $(`#satellite-selection option[value="${sensor}"]`).prop("disabled", true);
+      }
+    }
+    $('#satellite-selection').selectpicker('refresh');
+
+  })
 
   $("#satellite-selection").on("change",function() {
     var sensorName = $(this).val()
@@ -298,7 +339,6 @@ $(function(){
   $("#close-chart").on("click", function() {
     $('#exampleModal').modal('toggle')
   })
-
 // end main function
 })
 
