@@ -16,7 +16,9 @@ $(function(){
     container: 'map',
     style: 'mapbox://styles/mapbox/light-v10',
     zoom: 4,
-    center: [100,15]
+    center: [100,15],
+    minZoom: 2,
+    maxZoom: 15
   });
 
   var Draw = new MapboxDraw();
@@ -42,8 +44,6 @@ $(function(){
       'id': 'jrc-layer',
       'type': 'raster',
       'source': 'jrc-tiles',
-      'minzoom': 4,
-      'maxzoom': 22
     });
 
     // load the Jason ground tracks from tileset
@@ -133,8 +133,6 @@ $(function(){
 
        $("#control-container").css("height","450px")
      }
-
-
   })
 
   $("#satellite-selection").on("change",function() {
