@@ -18,7 +18,7 @@ $(function(){
     zoom: 4,
     center: [100,15],
     minZoom: 2,
-    maxZoom: 15
+    maxZoom: 14
   });
 
   var Draw = new MapboxDraw();
@@ -28,8 +28,6 @@ $(function(){
   // for more details: https://www.mapbox.com/mapbox-gl-js/api/map#addcontrol
 
   map.addControl(Draw, 'top-right');
-
-
 
   map.on('load', function() {
     map.addSource('jrc-tiles', {
