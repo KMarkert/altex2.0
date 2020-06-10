@@ -122,6 +122,7 @@ $(function(){
       $("#app-nav-btn").addClass("btn-outline-primary")
 
       $("#control-container").css("height","50px")
+      $("#control-container").css("overflow-y","hidden")
     }
      else if (iconClass.includes("plus")) {
        $icon.removeClass("fas fa-plus")
@@ -129,7 +130,8 @@ $(function(){
        $("#app-nav-btn").removeClass("btn-outline-primary")
        $("#app-nav-btn").addClass("btn-outline-danger")
 
-       $("#control-container").css("height","450px")
+       $("#control-container").css("height","calc(100% - 155px)")
+       $("#control-container").css("overflow-y","auto")
      }
   })
 

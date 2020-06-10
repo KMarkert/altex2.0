@@ -1,3 +1,7 @@
+.container-fluid {
+  overflow: hidden;
+}
+
 #map {
   position: absolute;
   top: 56px;
@@ -12,12 +16,15 @@
   position: absolute;
   top: 70px;
   left: 15px;
-  height: 450px;
+  height: calc(100% - 155px);
+  max-height: 410px;
   width: 450px;
   padding: 10px;
+  margin-bottom: 50px;
   background-color: #fff;
   box-shadow: 1px 1px 10px #404040;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 #app-nav-btn {
