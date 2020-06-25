@@ -18,7 +18,7 @@ for t in range(iters):
     date = start + datetime.timedelta(t)
     dateStr = date.strftime('%Y-%m-%d')
     print(f'{datetime.datetime.now()}: ingesting {dateStr} for {sensor}...')
-    cmd = f'python {script} etl {sensor} {workingdir} {dbname} --startTime {dateStr} --endTime {dateStr} --spatialFilter {landFile} --schema {schemaFile}--cleanup'
+    cmd = f'python {script} etl {sensor} {workingdir} {bqdataset} --startTime {dateStr} --endTime {dateStr} --spatialFilter {landFile} --schema {schemaFile}--cleanup'
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     out, err = proc.communicate()
     if out is not None:
