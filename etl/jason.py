@@ -1,5 +1,6 @@
 import os
 import fire
+import json
 import datetime
 import numpy as np
 import pandas as pd
@@ -15,8 +16,7 @@ import asyncio
 import logging
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
-import sqlalchemy
-from geoalchemy2 import Geometry, WKTElement
+import geojson
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -76,7 +76,7 @@ def interpDim(oldArr, newDim, type='nearest'):
     return fInterp(newx)
 
 
-def parseFile(altimetryPath):
+def parseFile(altimetryPath,spatialFilter=None):
     path = Path(altimetryPath).resolve()
     ds = xr.open_dataset(path)
 
@@ -105,7 +105,7 @@ def parseFile(altimetryPath):
     dfDict = {}
     for var in vars20hz:
         values = ds[var].values.ravel()
-        dfDict[var.replace('_20hz', '').replace('_ku','')] = values
+        dfDict[var.replace('_20hz', '').replace('_ku','').replace('ice_','')] = values
 
     dim20Hz = values.size
 
@@ -123,8 +123,7 @@ def parseFile(altimetryPath):
     # do some altering of data including data typing
     df['time'] = df['time'].values.astype('datetime64[us]')
     df['lon'] = df['lon'].where(df['lon'] < 180, df['lon'] - 360)
-    df['fid'] = range(df.shape[0])
-    df['ice_qual_flag'] = df['ice_qual_flag'].astype(np.uint8)
+    df['qual_flag'] = df['qual_flag'].astype(np.uint8)
     df['alt_state_flag_band_status'] = df['alt_state_flag_band_status'].astype(np.uint8)
 
     # scale values to prevent unnecessarily large dtypes
@@ -136,32 +135,17 @@ def parseFile(altimetryPath):
     df["geoid"] = (df["geoid"] * scaleFactor).astype(np.int32)
 
 
-    qamask = (df['alt_state_flag_band_status'] == 0) & (df['ice_qual_flag'] == 0)
+    qamask = (df['alt_state_flag_band_status'] == 0) & (df['qual_flag'] == 0)
     df = df.loc[qamask]
     latmask = ((df['lat'] > -60) & (df['lat'] < 85))
     df = df.loc[latmask]
 
-    df.drop(['alt_state_flag_band_status','ice_qual_flag'],axis=1,inplace=True)
+    df.drop(['alt_state_flag_band_status','qual_flag'],axis=1,inplace=True)
+    cols = list(df.columns) + ['geom']
 
     gdf = gpd.GeoDataFrame(
         df, geometry=gpd.points_from_xy(df.lon, df.lat))
     gdf.crs = {'init': 'epsg:4326'}
-
-    return gdf
-
-def spatialSelect(gdf,region):
-    spatial_index = gdf.sindex
-    possible_matches_index = list(spatial_index.intersection(region.bounds))
-    possible_matches = gdf.iloc[possible_matches_index]
-    matches = possible_matches[possible_matches.intersects(region)]
-    return matches
-
-def transform(flist, maxWorkers=5,spatialFilter=None):
-
-    with ThreadPoolExecutor(max_workers=maxWorkers) as executor:
-        gdfs = list(executor.map(lambda x: parseFile(x), flist))
-
-    merged = gpd.GeoDataFrame( pd.concat( gdfs, ignore_index=True) )
 
     if spatialFilter is not None:
         clipRegion= gpd.read_file(spatialFilter)
@@ -170,50 +154,52 @@ def transform(flist, maxWorkers=5,spatialFilter=None):
         land['code'] = 1
         clipRegion = gpd.GeoDataFrame(land.dissolve(by='code').buffer(0.075))
         clipRegion.columns = ['geometry']
-        clipRegion.crs = {'init': 'epsg:4326'}
+
+    clipRegion.crs = gdf.crs
+
+    # cols = list(gdf.columns)
+
+    keepPts = gpd.overlay(gdf, clipRegion,how='intersection')
+    keepPts['geom'] = [geojson.Point((keepPts.iloc[i]['lon'], keepPts.iloc[i]['lat'])) for i in range(keepPts.shape[0])]
+    outDf = pd.DataFrame(keepPts.drop('geometry', axis=1))
+
+    return outDf[cols]
+
+def transform(flist, maxWorkers=5,spatialFilter=None):
 
     with ThreadPoolExecutor(max_workers=maxWorkers) as executor:
-        matches = list(executor.map(lambda x: spatialSelect(merged,x), clipRegion.geometry))
+        dfs = list(executor.map(lambda x: parseFile(x,spatialFilter=spatialFilter), flist))
 
-    keepPts = gpd.GeoDataFrame( pd.concat( matches, ignore_index=True) )
-    keepPts['geom'] = keepPts['geometry'].apply(lambda x: WKTElement(x.wkt, srid=4326))
-    outGdf = keepPts.drop('geometry', axis=1)
+    merged = pd.concat(dfs, ignore_index=True)
 
-    return outGdf
+    return merged
 
 
-def load(df, dbname, table, username='postgres', host='127.0.0.1',port=5432):
-    engine = sqlalchemy.create_engine(f"postgresql://{username}@{host}:{port}/{dbname}", echo=False)
-    columnTypes = {
-        "time": sqlalchemy.TIMESTAMP(),
-        "lon": sqlalchemy.Numeric(9,6),
-        "lat": sqlalchemy.Numeric(8,6),
-        "alt": sqlalchemy.Numeric(12,5),
-        "ice_range": sqlalchemy.Numeric(12,5),
-        "model_dry_tropo_corr": sqlalchemy.Integer(),
-        "model_wet_tropo_corr": sqlalchemy.Integer(),
-        "iono_corr_gim": sqlalchemy.SmallInteger(),
-        "solid_earth_tide": sqlalchemy.SmallInteger(),
-        "pole_tide": sqlalchemy.SmallInteger(),
-        "geoid": sqlalchemy.Integer(),
-        "geom": Geometry('POINT', srid=4326)
-    }
+def load(file, bqdataset, bqtable, schema=None):
+    cmd = f'bq load --source_format=PARQUET {bqdataset}.{bqtable} {file} {schema}'
 
-    # for df in dfs:
-    df.to_sql(table, con=engine,if_exists='append', index=False,dtype=columnTypes)
+    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    out, err = proc.communicate()
+    if out is not None:
+        print(f"STDOUT: {out.decode()}")
+    if err is not None:
+        print(f"STDERR: {err.decode()}")
 
     return
 
 
 
-def etl(sensor, workingDir, dbname, startTime=None, endTime=None, overwrite=False, maxWorkers=5,
-        username='postgres',host='127.0.0.1', port=5432, spatialFilter=None,
-        cleanup=False):
+def etl(sensor, workingDir, bqdataset, startTime=None, endTime=None, overwrite=False, maxWorkers=5,
+        schema=None, spatialFilter=None,cleanup=False):
     raw = extract(sensor, workingDir, startTime=startTime,
                   endTime=endTime, overwrite=overwrite)
-    # raw = glob.glob(workingDir+'JA2*.nc')
-    gdf = transform(raw, maxWorkers=maxWorkers,spatialFilter=spatialFilter)
-    load(gdf, dbname=dbname,table=sensor,username=username,host=host,port=port)
+    # raw = glob.glob(workingDir+'JA3*.nc')
+    df = transform(raw, maxWorkers=maxWorkers,spatialFilter=spatialFilter)
+    # save the transformed dataset to a compressed parquet file to be loaded by bq
+    outFile = str(Path(workingDir) / f'{sensor}_{startTime}.parq.gz')
+    df.to_parquet(outFile,engine='fastparquet',compression='gzip',index=None)
+
+    load(outFile, bqdataset=bqdataset, bqtable=sensor, schema=schema)
 
     if cleanup:
         trash = glob.glob(workingDir+'*.*')
