@@ -30,37 +30,37 @@
     "type": "FLOAT"
   },
   {
-    "description": "",
+    "description": "dry tropospheric correction for altimetry retrievals",
     "mode": "NULLABLE",
     "name": "model_dry_tropo_corr",
     "type": "INT64"
   },
   {
-    "description": "",
+    "description": "wet tropospheric correction for altimetry retrievals",
     "mode": "NULLABLE",
     "name": "model_wet_tropo_corr",
     "type": "INT64"
   },
   {
-    "description": "",
+    "description": "ionospheric correction for altimetry retrievals",
     "mode": "NULLABLE",
     "name": "iono_corr_gim",
     "type": "INT64"
   },
   {
-    "description": "",
+    "description": "solid earth tide correction for altimetry retrievals",
     "mode": "NULLABLE",
     "name": "solid_earth_tide",
     "type": "INT64"
   },
   {
-    "description": "",
+    "description": "pole tide correction for altimetry retrievals",
     "mode": "NULLABLE",
     "name": "pole_tide",
     "type": "INT64"
   },
   {
-    "description": "",
+    "description": "earth geoid correction for altimetry retrievals",
     "mode": "NULLABLE",
     "name": "geoid",
     "type": "INT64"
