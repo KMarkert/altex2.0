@@ -5,8 +5,8 @@ import datetime
 script = 'jason.py'
 sensor = 'jason2'
 workingdir = f'../data/altimetry/{sensor}/'
-dbname= 'altexdb'
-username = 'kmarkert'
+bqdataset = 'altexdb'
+schemaFile = 'bqtable_schema.json'
 landFile = '../data/ancillary/land_area.geojson'
 
 
@@ -18,9 +18,11 @@ for t in range(iters):
     date = start + datetime.timedelta(t)
     dateStr = date.strftime('%Y-%m-%d')
     print(f'{datetime.datetime.now()}: ingesting {dateStr} for {sensor}...')
-    cmd = f'python {script} etl {sensor} {workingdir} {dbname} --startTime {dateStr} --endTime {dateStr} --username {username} --spatialFilter {landFile} --cleanup'
+    cmd = f'python {script} etl {sensor} {workingdir} {dbname} --startTime {dateStr} --endTime {dateStr} --spatialFilter {landFile} --schema {schemaFile}--cleanup'
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     out, err = proc.communicate()
-    print(f"STDOUT: {out}")
-    print(f"STDERR: {err}")
+    if out is not None:
+        print(f"STDOUT: {out.decode()}")
+    if err is not None:
+        print(f"STDERR: {err.decode()}")
     print(f'{datetime.datetime.now()}: done ingesting \n')
