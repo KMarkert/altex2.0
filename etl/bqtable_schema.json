@@ -1,0 +1,74 @@
+[
+  {
+    "description": "time of altimetry acquisition",
+    "mode": "NULLABLE",
+    "name": "time",
+    "type": "TIMESTAMP"
+  },
+  {
+    "description": "longitude coordinate of altimetry acquisition",
+    "mode": "NULLABLE",
+    "name": "lon",
+    "type": "FLOAT"
+  },
+  {
+    "description": "latitude coordinate of altimetry acquisition",
+    "mode": "NULLABLE",
+    "name": "lat",
+    "type": "FLOAT"
+  },
+  {
+    "description": "height of satellite at acquisition",
+    "mode": "NULLABLE",
+    "name": "alt",
+    "type": "FLOAT"
+  },
+  {
+    "description": "range of altimetry signal at acquisition",
+    "mode": "NULLABLE",
+    "name": "range",
+    "type": "FLOAT"
+  },
+  {
+    "description": "",
+    "mode": "NULLABLE",
+    "name": "model_dry_tropo_corr",
+    "type": "INT64"
+  },
+  {
+    "description": "",
+    "mode": "NULLABLE",
+    "name": "model_wet_tropo_corr",
+    "type": "INT64"
+  },
+  {
+    "description": "",
+    "mode": "NULLABLE",
+    "name": "iono_corr_gim",
+    "type": "INT64"
+  },
+  {
+    "description": "",
+    "mode": "NULLABLE",
+    "name": "solid_earth_tide",
+    "type": "INT64"
+  },
+  {
+    "description": "",
+    "mode": "NULLABLE",
+    "name": "pole_tide",
+    "type": "INT64"
+  },
+  {
+    "description": "",
+    "mode": "NULLABLE",
+    "name": "geoid",
+    "type": "INT64"
+  },
+  {
+    "description": "lat/lon geometry of altimetry acquisition",
+    "mode": "NULLABLE",
+    "name": "geom",
+    "type": "GEOGRAPHY"
+  }
+]
