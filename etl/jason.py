@@ -177,13 +177,13 @@ def transform(flist, maxWorkers=5,spatialFilter=None):
 
 def load(file, bqdataset, bqtable, schema=None):
     cmd = f'bq load --source_format=PARQUET {bqdataset}.{bqtable} {file} {schema}'
-
-    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    out, err = proc.communicate()
-    if out is not None:
-        print(f"STDOUT: {out.decode()}")
-    if err is not None:
-        print(f"STDERR: {err.decode()}")
+    os.system(cmd)
+    # proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    # out, err = proc.communicate()
+    # if out is not None:
+    #     print(f"STDOUT: {out.decode()}")
+    # if err is not None:
+    #     print(f"STDERR: {err.decode()}")
 
     return
 
