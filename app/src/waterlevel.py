@@ -50,8 +50,8 @@ def outlierFilter(series):
 
             i+=1
 
-            if i > 50:
-                break
+            # if i > 50:
+            #     break
 
         kmeans = None
 
@@ -79,16 +79,16 @@ def calcWaterLevel(df,applyFilter=False):
 
     # calculate the media correction factor and scale units to meters
     mediaCorr = (df['model_dry_tropo_corr'] + df['model_wet_tropo_corr']\
-        + df['iono_corr_gim'] + df['solid_earth_tide'] + df['pole_tide']) *1e-5
+        + df['iono_corr_gim'] + df['solid_earth_tide'] + df['pole_tide']) * 0.00001
 
     # calculate geoid correction factor and scale units to meters
-    geoidCorr = df['geoid']*1e-5
+    geoidCorr = df['geoid']* 0.00001
 
     # calculate difference between satellite altitude and range with correction factors
-    df['waterLevel'] = df['alt'] - (mediaCorr + df['ice_range']) - geoidCorr  - df['sensor_corr']
+    df['waterLevel'] = df['alt'] - (mediaCorr + df['ice_range'] + geoidCorr +  df['sensor_corr'])
 
     # get only the water level series
-    series = df['waterLevel']
+    series = iqrFilter(df['waterLevel'])
 
     # group by distinct date
     # all observations within one day will be aggregated
