@@ -88,7 +88,7 @@ def calcWaterLevel(df,applyFilter=False):
     df['waterLevel'] = df['alt'] - (mediaCorr + df['range']) - geoidCorr  - df['sensor_corr']
 
     # get only the water level series
-    series = df['waterLevel']
+    series = iqrFilter(df['waterLevel'])
 
     # group by distinct date
     # all observations within one day will be aggregated
