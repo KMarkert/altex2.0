@@ -21,14 +21,6 @@ $(function(){
     maxZoom: 14
   });
 
-  var Draw = new MapboxDraw();
-
-  // Map#addControl takes an optional second argument to set the position of the control.
-  // If no position is specified the control defaults to `top-right`. See the docs
-  // for more details: https://www.mapbox.com/mapbox-gl-js/api/map#addcontrol
-
-  map.addControl(Draw, 'top-right');
-
   map.on('load', function() {
     map.addSource('jrc-tiles', {
       'type': 'raster',
@@ -77,8 +69,16 @@ $(function(){
     });
     map.setLayoutProperty('saral-layer', 'visibility', 'none');
 
-
   });
+
+  var Draw = new MapboxDraw();
+
+  // Map#addControl takes an optional second argument to set the position of the control.
+  // If no position is specified the control defaults to `top-right`. See the docs
+  // for more details: https://www.mapbox.com/mapbox-gl-js/api/map#addcontrol
+
+  map.addControl(Draw, 'top-right');
+
 
   var iniStart = sensorDates['Jason2']['start'], iniEnd = sensorDates['Jason2']['end']
   buildDatepickers(iniStart,iniEnd,iniStart,iniEnd)
