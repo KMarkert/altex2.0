@@ -84,12 +84,14 @@ def getWaterLevel():
             else:
                 queryParams['bbox'] = request.args.get("bbox")
 
+            queryParams['dataset'] = config.BQDATASET
+            queryParams['exclude'] = ['geom','lon','lat']
+
             q = dbio.constructQuery(**queryParams)
-            df= dbio.queryDb(q,username=config.DBUSERNAME,
-                host=config.DBHOST,port=config.DBPORT,dbname=config.DBNAME)
+            df= dbio.queryDb(q,projectid=config.PROJECT_ID)
 
             filter = request.args.get("applyFilter")
-            if filter in ['True','true',1,'TRUE']:
+            if filter in [True,'True','true',1,'TRUE']:
                 filter = True
             else:
                 filter = False
@@ -121,9 +123,12 @@ def getTable():
             else:
                 queryParams['bbox'] = request.args.get("bbox")
 
+            queryParams['dataset'] = config.BQDATASET
+            queryParams['exclude'] = ['geom']
+            print(queryParams)
+
             q = dbio.constructQuery(**queryParams)
-            df= dbio.queryDb(q,username=config.DBUSERNAME,
-                host=config.DBHOST,port=config.DBPORT,dbname=config.DBNAME)
+            df= dbio.queryDb(q,projectid=config.PROJECT_ID)
 
             return_obj['result'] = df.to_json(orient='split',index=False)
 

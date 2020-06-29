@@ -85,7 +85,7 @@ def calcWaterLevel(df,applyFilter=False):
     geoidCorr = df['geoid']*1e-5
 
     # calculate difference between satellite altitude and range with correction factors
-    df['waterLevel'] = df['alt'] - (mediaCorr + df['ice_range']) - geoidCorr  - df['sensor_corr']
+    df['waterLevel'] = df['alt'] - (mediaCorr + df['range']) - geoidCorr  - df['sensor_corr']
 
     # get only the water level series
     series = df['waterLevel']
