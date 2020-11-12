@@ -5,5 +5,5 @@ Web app based off of original work from https://github.com/servir/altex.
 
 
 ```
-$ conda create -n altex python=3.6 numpy scipy scikit-learn pandas geopandas xarray netCDF4 flask flask-cors aioftp aiohttp fire requests sqlalchemy geoalchemy2
+$ conda create -n altex -c conda-forge python=3.6 numpy scipy scikit-learn pandas geopandas pandas-gbq xarray netCDF4 flask flask-cors aioftp aiohttp fire requests geojson fastparquet
 ```
