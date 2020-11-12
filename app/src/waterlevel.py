@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from sklearn.cluster import KMeans
+from functools import lru_cache
 
 SEED = 0
 
@@ -70,7 +71,7 @@ def outlierFilter(series):
 
     return heights.mean()
 
-def calcWaterLevel(df,applyFilter=False):
+def calcWaterLevel(df,applyFilter=True):
     # set the index to time to make it a time series table
     df = df.set_index('time')
 
@@ -85,7 +86,7 @@ def calcWaterLevel(df,applyFilter=False):
     geoidCorr = df['geoid']* 0.00001
 
     # calculate difference between satellite altitude and range with correction factors
-    df['waterLevel'] = df['alt'] - (mediaCorr + df['ice_range'] + geoidCorr +  df['sensor_corr'])
+    df['waterLevel'] = df['alt'] - (mediaCorr + df['range'] + geoidCorr +  df['sensor_corr'])
 
     # get only the water level series
     series = iqrFilter(df['waterLevel'])

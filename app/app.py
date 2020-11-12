@@ -67,8 +67,8 @@ def get_capabilities():
 
     return jsonify(info)
 
-@app.route("/api/getWaterLevel/", methods=['GET'])
-def getWaterLevel():
+@app.route("/api/get_waterlevel/", methods=['GET'])
+def get_waterlevel():
     return_obj = {}
     if request.method == 'GET':
         try:
@@ -76,7 +76,7 @@ def getWaterLevel():
             # get some domain specific information
             queryParams['startTime'] = request.args.get('startTime')
             queryParams['endTime'] = request.args.get('endTime')
-            queryParams['table'] = request.args.get("sensor")
+            queryParams['sensor'] = request.args.get("sensor")
 
             region = request.args.get("region")
             if region is not None:
@@ -84,15 +84,13 @@ def getWaterLevel():
             else:
                 queryParams['bbox'] = request.args.get("bbox")
 
-            q = dbio.constructQuery(**queryParams)
-            df= dbio.queryDb(q,username=config.DBUSERNAME,
-                host=config.DBHOST,port=config.DBPORT,dbname=config.DBNAME)
+            df = dbio.getDataFrame(config.DATADIR,**queryParams)
 
             filter = request.args.get("applyFilter")
-            if filter in ['True','true',1,'TRUE']:
-                filter = True
-            else:
+            if filter in ['False','false','FALSE',False,0]:
                 filter = False
+            else:
+                filter = True
 
             wl = waterlevel.calcWaterLevel(df,applyFilter=filter)
 
@@ -104,8 +102,8 @@ def getWaterLevel():
     return jsonify(return_obj)
 
 
-@app.route("/api/getTable/", methods=['GET'])
-def getTable():
+@app.route("/api/get_table/", methods=['GET'])
+def get_table():
     return_obj = {}
     if request.method == 'GET':
         try:
@@ -113,7 +111,7 @@ def getTable():
             # get some domain specific information
             queryParams['startTime'] = request.args.get('startTime')
             queryParams['endTime'] = request.args.get('endTime')
-            queryParams['table'] = request.args.get("sensor")
+            queryParams['sensor'] = request.args.get("sensor")
 
             region = request.args.get("region")
             if region is not None:
@@ -121,9 +119,7 @@ def getTable():
             else:
                 queryParams['bbox'] = request.args.get("bbox")
 
-            q = dbio.constructQuery(**queryParams)
-            df= dbio.queryDb(q,username=config.DBUSERNAME,
-                host=config.DBHOST,port=config.DBPORT,dbname=config.DBNAME)
+            df= dbio.getDataFrame(config.DATADIR,**queryParams)
 
             return_obj['result'] = df.to_json(orient='split',index=False)
 

@@ -1,53 +1,76 @@
-import sqlalchemy as sql
+import datetime
+from pathlib import Path
+import dask.dataframe as dd
 import pandas as pd
+import geopandas as gpd
+from shapely.geometry import shape
+from shapely import wkt
+import json
+import geojson
+from functools import partial,lru_cache
 
-def queryDb(query,username='postgres',host='127.0.0.1',port=5432,dbname=None):
-    engine = sql.create_engine(f"postgresql://{username}@{host}:{port}/{dbname}", echo=False)
-    df = pd.read_sql_query(query,engine)
-    if 'geom' in df.columns:
-        df.drop(['geom'],axis=1,inplace=True)
-    return df
+@lru_cache()
+def filterFileDate(file,startTime,endTime):
+    """
+    """
+    s = datetime.datetime.strptime(startTime,"%Y-%m-%d")
+    e = datetime.datetime.strptime(endTime,"%Y-%m-%d")
+    dstr = str(file).split('_')[-1].split('.')[0]
+    d = datetime.datetime.strptime(dstr,"%Y%m%d")
+    if d >= s and d <= e:
+        return file
+    else:
+        return
 
-def constructQuery(startTime=None,endTime=None,table=None,region=None,columns=None,bbox=None):
+
+@lru_cache()
+def getDataFrame(datadir,sensor=None,startTime=None,endTime=None,region=None,columns=None):
     """
 
     """
 
-    if all(map(lambda x: x==None,(startTime,endTime,region,bbox))):
-        raise ValueError("please provide a time or geometry to filter by")
+    datadir = Path(datadir) / sensor
+
+    files = datadir.glob('*.gz')
+
+    filter_func = partial(filterFileDate,startTime=startTime,endTime=endTime)
+
+    filteredfiles = list(filter(lambda x: x is not None , map(filter_func,files)))
+
+    # df = dd.read_parquet(filteredfiles,engine="pyarrow")
+
+    # df= df.set_index(["lat","lon"],sorted=True)
+
+    # need to add in spatial filter...
+    xy = tuple(map(lambda x: tuple(map(float, x.split(" "))), region.split(",")))
+    region = gpd.GeoDataFrame({'geometry':shape(geojson.Polygon([xy]))},index=[0])
+    bbox = tuple(region.bounds.iloc[0])
+
+    df = dd.read_parquet(filteredfiles,engine="pyarrow")
+
+    # get location of where points are in bounding box
+    xMask = (df.lon >= bbox[0]) & (df.lon <= bbox[2])
+    yMask = (df.lat >= bbox[1]) & (df.lat <= bbox[3])
+    boxMask = xMask & yMask
+
+    # filter by bounding box
+    dfFiltered = df.loc[boxMask].compute()
+
+    gdf = gpd.GeoDataFrame(
+        dfFiltered, geometry=gpd.points_from_xy(dfFiltered.lon, dfFiltered.lat)
+    )
+
+    final = pd.DataFrame(
+        gpd.overlay(gdf, region,how='intersection')
+        .drop('geometry', axis=1)
+    )
+
+    final['sensor'] = [sensor for i in range(final.shape[0])]
+    final['time'] = pd.to_datetime(final['time'])
 
     if columns is not None:
-        if type(columns) is str:
-            cStr = columns
-        else:
-            raise TypeError('columns argument expected to be of type str formatted as "col1,col2,.."')
+        final = dfFiltered[columns]
     else:
-        cStr = '*'
+        final.drop(['geom'],axis=1,inplace=True)
 
-    query = f"SELECT {cStr}, '{table.lower()}' as sensor FROM {table.lower()}"
-
-    prepend = 'WHERE'
-
-    if startTime is not None:
-        # inclusive
-        query = query + f" {prepend} time >= '{startTime}T00:00:00' "
-        prepend = 'AND'
-
-    if endTime is not None:
-        # exclusive
-        query = query + f" {prepend} time <= '{endTime}T00:00:00' "
-        prepend = 'AND'
-
-    if (region is not None) and (bbox is not None):
-        raise ValueError('region and bbox keywords are mutually exclusive, please provide only one')
-
-    if region is not None:
-        query = query + f" {prepend} ST_Intersects(geom, 'SRID=4326;POLYGON(({region}))') "
-        prepend = 'AND'
-
-    if bbox is not None:
-        bbox = ','.join([str(i) for i in bbox])
-        query = query + f" {prepend} ST_Intersects(geom, ST_MakeEnvelope({bbox}, 4326)) "
-        prepend = 'AND'
-
-    return query + ';'
+    return final
