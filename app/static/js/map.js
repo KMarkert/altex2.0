@@ -197,7 +197,7 @@ $(function(){
 
     $.ajax({
       type: 'GET',
-      url: '/api/getTable',
+      url: '/api/get_table',
       dataType: "json",
       data: payload,
       success: function(data){
@@ -281,7 +281,7 @@ $(function(){
 
     $.ajax({
       type: 'GET',
-      url: '/api/getWaterLevel',
+      url: '/api/get_waterlevel',
       dataType: "json",
       data: payload,
       success: function(data){
