@@ -1,4 +1,2 @@
-__pycache__/
-.DS_Store
-*.profraw
-postgres/
+__pycache__
+*.pyc
