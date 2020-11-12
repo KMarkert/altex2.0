@@ -189,7 +189,7 @@ def load(df, dbname, table, username='postgres', host='127.0.0.1',port=5432):
         "lon": sqlalchemy.Numeric(9,6),
         "lat": sqlalchemy.Numeric(8,6),
         "alt": sqlalchemy.Numeric(12,5),
-        "ice_range": sqlalchemy.Numeric(12,5),
+        "range": sqlalchemy.Numeric(12,5),
         "model_dry_tropo_corr": sqlalchemy.Integer(),
         "model_wet_tropo_corr": sqlalchemy.Integer(),
         "iono_corr_gim": sqlalchemy.SmallInteger(),
