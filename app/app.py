@@ -76,7 +76,11 @@ def getWaterLevel():
             # get some domain specific information
             queryParams['startTime'] = request.args.get('startTime')
             queryParams['endTime'] = request.args.get('endTime')
-            queryParams['table'] = request.args.get("sensor")
+            queryParams['sensor'] = request.args.get("sensor")
+
+            tablesq =  dbio.constructTableQuery(**queryParams)
+            queryTables = dbio.queryDb(tablesq,username=config.DBUSERNAME,
+                host=config.DBHOST,port=config.DBPORT,dbname=config.DBNAME)
 
             region = request.args.get("region")
             if region is not None:
@@ -84,7 +88,7 @@ def getWaterLevel():
             else:
                 queryParams['bbox'] = request.args.get("bbox")
 
-            q = dbio.constructQuery(**queryParams)
+            q = dbio.constructSpatialQuery(queryTables,**queryParams)
             df= dbio.queryDb(q,username=config.DBUSERNAME,
                 host=config.DBHOST,port=config.DBPORT,dbname=config.DBNAME)
 
@@ -113,7 +117,11 @@ def getTable():
             # get some domain specific information
             queryParams['startTime'] = request.args.get('startTime')
             queryParams['endTime'] = request.args.get('endTime')
-            queryParams['table'] = request.args.get("sensor")
+            queryParams['sensor'] = request.args.get("sensor")
+
+            tablesq =  dbio.constructTableQuery(**queryParams)
+            queryTables = dbio.queryDb(tablesq,username=config.DBUSERNAME,
+                host=config.DBHOST,port=config.DBPORT,dbname=config.DBNAME)
 
             region = request.args.get("region")
             if region is not None:
@@ -121,7 +129,7 @@ def getTable():
             else:
                 queryParams['bbox'] = request.args.get("bbox")
 
-            q = dbio.constructQuery(**queryParams)
+            q = dbio.constructSpatialQuery(queryTables,**queryParams)
             df= dbio.queryDb(q,username=config.DBUSERNAME,
                 host=config.DBHOST,port=config.DBPORT,dbname=config.DBNAME)
 
