@@ -182,7 +182,7 @@ def transform(flist, maxWorkers=5,spatialFilter=None):
     return outGdf
 
 
-def load(df, dbname, table, username='postgres', host='127.0.0.1',port=5432):
+def load(df, dbname, sensor, table, username='postgres', host='127.0.0.1',port=5432):
     engine = sqlalchemy.create_engine(f"postgresql://{username}@{host}:{port}/{dbname}", echo=False)
     columnTypes = {
         "time": sqlalchemy.TIMESTAMP(),
@@ -200,7 +200,13 @@ def load(df, dbname, table, username='postgres', host='127.0.0.1',port=5432):
     }
 
     # for df in dfs:
-    df.to_sql(table, con=engine,if_exists='append', index=False,dtype=columnTypes)
+    df.to_sql(table, con=engine,if_exists='fail', index=False,dtype=columnTypes)
+
+    index_df = pd.DataFrame(
+        {'table_name':table,'sensor':sensor.lower(),'start_time':df.time.min(),'end_time':df.time.max()},
+        index=[0]
+    )
+    index_df.to_sql('table_index', con=engine,if_exists='append', index=False,dtype=columnTypes)
 
     return
 
@@ -213,7 +219,8 @@ def etl(sensor, workingDir, dbname, startTime=None, endTime=None, overwrite=Fals
                   endTime=endTime, overwrite=overwrite)
     # raw = glob.glob(workingDir+'JA2*.nc')
     gdf = transform(raw, maxWorkers=maxWorkers,spatialFilter=spatialFilter)
-    load(gdf, dbname=dbname,table=sensor,username=username,host=host,port=port)
+    table_name = f"{sensor}_{startTime.replace('-','')}"
+    load(gdf, dbname=dbname,sensor=sensor,table=table_name,username=username,host=host,port=port)
 
     if cleanup:
         trash = glob.glob(workingDir+'*.*')
