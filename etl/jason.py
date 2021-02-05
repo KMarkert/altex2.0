@@ -123,7 +123,7 @@ def parseFile(altimetryPath):
     # do some altering of data including data typing
     df['time'] = df['time'].values.astype('datetime64[us]')
     df['lon'] = df['lon'].where(df['lon'] < 180, df['lon'] - 360)
-    df['fid'] = range(df.shape[0])
+    # df['fid'] = range(df.shape[0])
     df['ice_qual_flag'] = df['ice_qual_flag'].astype(np.uint8)
     df['alt_state_flag_band_status'] = df['alt_state_flag_band_status'].astype(np.uint8)
 
