@@ -105,7 +105,7 @@ def parseFile(altimetryPath):
     dfDict = {}
     for var in vars20hz:
         values = ds[var].values.ravel()
-        dfDict[var.replace('_20hz', '').replace('_ku','')] = values
+        dfDict[var.replace('_20hz', '').replace('_ku','').replace('ice_','')] = values
 
     dim20Hz = values.size
 
@@ -123,8 +123,8 @@ def parseFile(altimetryPath):
     # do some altering of data including data typing
     df['time'] = df['time'].values.astype('datetime64[us]')
     df['lon'] = df['lon'].where(df['lon'] < 180, df['lon'] - 360)
-    # df['fid'] = range(df.shape[0])
-    df['ice_qual_flag'] = df['ice_qual_flag'].astype(np.uint8)
+    df['fid'] = range(df.shape[0])
+    df['qual_flag'] = df['qual_flag'].astype(np.uint8)
     df['alt_state_flag_band_status'] = df['alt_state_flag_band_status'].astype(np.uint8)
 
     # scale values to prevent unnecessarily large dtypes
@@ -136,12 +136,12 @@ def parseFile(altimetryPath):
     df["geoid"] = (df["geoid"] * scaleFactor).astype(np.int32)
 
 
-    qamask = (df['alt_state_flag_band_status'] == 0) & (df['ice_qual_flag'] == 0)
+    qamask = (df['alt_state_flag_band_status'] == 0) & (df['qual_flag'] == 0)
     df = df.loc[qamask]
     latmask = ((df['lat'] > -60) & (df['lat'] < 85))
     df = df.loc[latmask]
 
-    df.drop(['alt_state_flag_band_status','ice_qual_flag'],axis=1,inplace=True)
+    df.drop(['alt_state_flag_band_status','qual_flag','fid'],axis=1,inplace=True)
 
     gdf = gpd.GeoDataFrame(
         df, geometry=gpd.points_from_xy(df.lon, df.lat))
