@@ -183,7 +183,7 @@ $(function(){
     } else {
       regionStr = constructGeomString(features)
     }
-    var payload = {startTime:start,endTime:end,sensor:sensor,region:regionStr}
+    var payload = {start_time:start,end_time:end,sensor:sensor,region:regionStr}
 
     //Destroy the old Datatable if it exists
     if ($.fn.dataTable.isDataTable('#table')) {
@@ -197,7 +197,7 @@ $(function(){
 
     $.ajax({
       type: 'GET',
-      url: '/api/getTable',
+      url: '/api/get_table',
       dataType: "json",
       data: payload,
       success: function(data){
@@ -262,7 +262,7 @@ $(function(){
     } else {
       regionStr = constructGeomString(features)
     }
-    var payload = {startTime:start,endTime:end,sensor:sensor,region:regionStr,applyFilter:filter}
+    var payload = {start_time:start,end_time:end,sensor:sensor,region:regionStr,applyFilter:filter}
 
     if (chart != null ) {
       try {
@@ -281,7 +281,7 @@ $(function(){
 
     $.ajax({
       type: 'GET',
-      url: '/api/getWaterLevel',
+      url: '/api/get_waterlevel',
       dataType: "json",
       data: payload,
       success: function(data){

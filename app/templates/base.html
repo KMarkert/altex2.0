@@ -5,7 +5,7 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<title>AltEx2.0 - {% block title %}{% endblock %}</title>
-		<link rel=icon href="{{ url_for('static', filename='img/favicon.png') }}" sizes="16x16" type="image/png">
+		<link rel=icon href="{{ url_for('static', path='/img/favicon.png') }}" sizes="16x16" type="image/png">
 
 		<!-- bootstrap -->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
@@ -17,8 +17,9 @@
 		<!-- font awesome icons -->
 		<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" rel="stylesheet" type="text/css" />
 
-		<script src="{{ url_for('static', filename='js/index.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+		<script src="{{ url_for('static', path='/js/index.js') }}"></script>
+		<script src="{{ url_for('static', path='js/map.js') }}"></script>
+    	<link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
 
     {% endblock %}
   </head>
@@ -26,7 +27,7 @@
 		<!-- Image and text -->
 		<nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
 			<a class="navbar-brand" href="#">
-		    <img src="{{ url_for('static', filename='img/servirlogo.png') }}" width="30" height="30" alt="">
+		    <img src="{{ url_for('static', path='img/servirlogo.png') }}" width="30" height="30" alt="">
 		  </a>
 			<button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
 		    <span class="navbar-toggler-icon"></span>
@@ -52,7 +53,7 @@
       {% block footer %}
 			<div class="row">
 				<div class="col-lg-6">
-				 <img src="{{ url_for('static', filename='img/serviralllogos.png') }}" height="50" alt=""/>
+				 <img src="{{ url_for('static', path='img/serviralllogos.png') }}" height="50" alt=""/>
 				</div>
 				<div class="col-lg-6 text-right">
 	  	      &copy; Copyright 2020 <a target="_" href="http://servirglobal.net/">

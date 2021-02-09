@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
+{{ super() }}
 {% block content %}
   <div class="container-fluid content" id="lander">
     <div class="row" id="info-banner">
@@ -14,7 +15,7 @@
     </div>
     <div class="row" >
       <div class="col-lg-12">
-        <img class="landing-img" src="{{ url_for('static', filename='img/landing_img.jpg') }}"/>
+        <img class="landing-img" src="{{ url_for('static', path='img/landing_img.jpg') }}"/>
         <div class="carousel-caption text-center">
           <h1>Altimetry Explorer</h1>
           <h5> Access to global water level information from satellite altimetry</h5>

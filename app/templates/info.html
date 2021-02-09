@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Information{% endblock %}
+{{ super() }}
 {% block head %}
  {{ super() }}
- <link rel="stylesheet" href="{{ url_for('static', filename='css/info.css') }}">
+ <link rel="stylesheet" href="{{ url_for('static', path='css/info.css') }}">
 {% endblock %}
 {% block content %}
   <div class="container-fluid content">
@@ -53,7 +54,7 @@
             </p>
           </div>
           <div class="col-lg-4 offset-lg-1">
-            <img src="{{ url_for('static', filename='img/altimetry_sensors.png') }}",alt="altimetry sensors" width="100%" />
+            <img src="{{ url_for('static', path='img/altimetry_sensors.png') }}",alt="altimetry sensors" width="100%" />
             <p>
               Figure 2. Gannt chart showing time covered by specific altimetry sensors
             </p>
