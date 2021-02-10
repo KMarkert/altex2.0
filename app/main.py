@@ -24,7 +24,7 @@ def info_page(request: Request):
     return templates.TemplateResponse("info.html",{"request": request})
 
 @app.get("/api/get_table/", response_class=JSONResponse)
-def get_table(sensor: str, start_time: str, end_time: str, region=None):
+def get_table(sensor: str, start_time: str, end_time: str, region: str):
 
     return_obj = dict()
     
