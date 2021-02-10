@@ -1,5 +1,12 @@
+import sys
+import time
+import logging
 import subprocess
 import datetime
+
+logging.basicConfig(filename = sys.argv[1],
+                    format='%(asctime)s %(message)s', datefmt='%Y-%m-%d %I:%M:%S %p',
+                    level = logging.INFO)
 
 
 script = 'jason.py'
@@ -17,10 +24,11 @@ iters = (end-start).days + 1
 for t in range(iters):
     date = start + datetime.timedelta(t)
     dateStr = date.strftime('%Y-%m-%d')
-    print(f'{datetime.datetime.now()}: ingesting {dateStr} for {sensor}...')
+    logging.info(f' ingesting {dateStr} for {sensor}...')
     cmd = f'python {script} etl {sensor} {workingdir} {dbname} --startTime {dateStr} --endTime {dateStr} --username {username} --spatialFilter {landFile} --cleanup'
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     out, err = proc.communicate()
-    print(f"STDOUT: {out}")
-    print(f"STDERR: {err}")
-    print(f'{datetime.datetime.now()}: done ingesting \n')
+    logging.info(f"STDOUT: {out}")
+    logging.error(f"STDERR: {err}")
+
+    time.sleep(60)
